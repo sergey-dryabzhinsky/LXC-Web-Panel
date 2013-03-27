@@ -40,7 +40,7 @@ def exists(container):
     if container in ls(): return True
     return False
 
-def create(container, template='ubuntu', storage=None):
+def create(container, template='ubuntu', xargs=None, storage=None):
     '''
     Create a container (without all options)
     Default template: Ubuntu
@@ -50,6 +50,7 @@ def create(container, template='ubuntu', storage=None):
     command = 'lxc-create -n {}'.format(container)
     command += ' -t {}'.format(template)
     if storage: command += ' -B {}'.format(storage)
+    if xargs: command += ' -- {}'.format(xargs)
             
     return _run(command)
 

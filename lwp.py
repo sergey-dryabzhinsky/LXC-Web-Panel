@@ -370,11 +370,12 @@ def create_container():
         if request.method == 'POST':
             name = request.form['name']
             template = request.form['template']
+            xargs = request.form['ccommand']
             if re.match('^(?!^containers$)|[a-zA-Z0-9_-]+$', name):
                 storage_method = request.form['backingstore']
                 if storage_method == 'default':
                     try:
-                        if lxc.create(name, template=template) == 0:
+                        if lxc.create(name, template=template, xargs=xargs) == 0:
                             flash(u'Container %s created successfully!' % name, 'success')
                         else:
                             flash(u'Failed to create %s!' % name, 'error')
@@ -384,7 +385,7 @@ def create_container():
                     directory = request.form['dir']
                     if re.match('^/[a-zA-Z0-9_/-]+$', directory) and directory != '':
                         try:
-                            if lxc.create(name, template=template, backing_store='dir --dir %s' % directory) == 0:
+                            if lxc.create(name, template=template, xargs=xargs, backing_store='dir --dir %s' % directory) == 0:
                                 flash(u'Container %s created successfully!' % name, 'success')
                             else:
                                 flash(u'Failed to create %s!' % name, 'error')
@@ -407,7 +408,7 @@ def create_container():
                         storage_options += ' --fssize %s' % fssize
 
                     try:
-                        if lxc.create(name, template=template, backing_store=storage_options) == 0:
+                        if lxc.create(name, template=template, xargs=xargs, backing_store=storage_options) == 0:
                             flash(u'Container %s created successfully!' % name, 'success')
                         else:
                             flash(u'Failed to create %s!' % name, 'error')
@@ -491,11 +492,23 @@ def refresh_memory_containers(name=None):
         containers = []
         for container in containers_running:
             container = container.replace(' (auto)', '')
-            containers.append({'name': container, 'memusg': lwp.memory_usage(container), 'max_memusg': lwp.max_memory_usage(name)})
+            containers.append({
+                'name': container,
+                'memusg': lwp.memory_usage(container),
+                'max_memusg': lwp.max_memory_usage(container)
+            })
         return jsonify(data=containers)
     elif name == 'host':
         return jsonify(lwp.host_memory_usage())
-    return jsonify({'memusg': lwp.memory_usage(name), 'max_memusg': lwp.max_memory_usage(name)})
+    return jsonify({
+        'memusg': lwp.memory_usage(name),
+        'max_memusg': lwp.max_memory_usage(name)
+    })
+
+
+@app.route('/_get_container_help_<name>')
+def _get_container_help(name=None):
+    return jsonify({'help': lwp.get_template_help(name)})
 
 
 @app.route('/_check_version')

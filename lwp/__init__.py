@@ -103,7 +103,6 @@ def max_memory_usage(name):
     if name in stopped():
         return 0
     cmd = ['lxc-cgroup -n %s memory.limit_in_bytes' % name]
-    print(cmd)
     try:
         out = subprocess.check_output(cmd, shell=True).splitlines()
     except:
@@ -115,12 +114,21 @@ def real_ipv4_container(name):
     if name in stopped():
         return ''
     cmd = ["lxc-attach --name %s -- ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'" % name]
-    print(cmd)
     try:
         out = subprocess.check_output(cmd, shell=True)
     except:
         return ''
     return out
+
+
+def get_template_help(name):
+    cmd = ["lxc-create -t %s -h" % name]
+    try:
+        out = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        return out
+    except Exception as e:
+        return unicode(e.output)
+
 
 def host_memory_usage():
     '''
