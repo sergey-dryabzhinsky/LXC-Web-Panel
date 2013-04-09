@@ -116,6 +116,14 @@ def edit(container=None):
             if form['swlimit'] != cfg['swlimit'] and re.match('^[0-9]+$', form['swlimit']) and int(form['swlimit']) <= int(host_memory['total'] * 2):
                 if int(form['swlimit']) == int(host_memory['total'] * 2):
                     form['swlimit'] = ''
+			
+				# Raise memsw if necessary : condition to be valid: memsw >= memory 
+				if form['memlimit'] == ''
+					form['swlimit'] = ''
+				if form['swlimit'] != '' and form['memlimit'] != '' and int(form['swlimit']) < int(form['memlimit'])
+					form['swlimit'] = form['memlimit']
+
+
                 if form['swlimit'] != cfg['swlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'], container=container)
                     flash(u'Swap limit updated for %s!' % container, 'success')
