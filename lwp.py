@@ -113,16 +113,17 @@ def edit(container=None):
                     lwp.push_config_value('lxc.cgroup.memory.limit_in_bytes', form['memlimit'], container=container)
                     flash(u'Memory limit updated for %s!' % container, 'success')
 
-            if form['swlimit'] != cfg['swlimit'] and re.match('^[0-9]+$', form['swlimit']) and int(form['swlimit']) <= int(host_memory['total'] * 2):
+            if ( form['memlimit'] != cfg['memlimit'] or form['swlimit'] != cfg['swlimit'] ) and re.match('^[0-9]+$', form['swlimit']) and int(form['swlimit']) <= int(host_memory['total'] * 2):
                 if int(form['swlimit']) == int(host_memory['total'] * 2):
                     form['swlimit'] = ''
 			
-				# Raise memsw if necessary : condition to be valid: memsw >= memory 
-				if form['memlimit'] == ''
-					form['swlimit'] = ''
-				if form['swlimit'] != '' and form['memlimit'] != '' and int(form['swlimit']) < int(form['memlimit'])
-					form['swlimit'] = form['memlimit']
-
+                # Raise memsw if necessary : condition to be valid: memsw >= memory 
+                if form['memlimit'] == '':
+                    form['swlimit'] = ''
+                    flash(u'Memory + Swap needs to be more or equal Memory','warning')
+                if form['swlimit'] != '' and form['memlimit'] != '' and int(form['swlimit']) < int(form['memlimit']):
+                    form['swlimit'] = form['memlimit']
+                    flash(u'Memory + Swap needs to be more or equal Memory','warning')
 
                 if form['swlimit'] != cfg['swlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'], container=container)
