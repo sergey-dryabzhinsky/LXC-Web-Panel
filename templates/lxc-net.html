@@ -17,7 +17,7 @@
 			<div class="control-group">
 				<label class="control-label" for="inputBridge">Bridge name</label>
 				<div class="controls">
-					<input pattern="\w+" type="text" id="inputBridge" name="bridge" value="{{ cfg.bridge }}"{% if running != [] %} disabled{% endif %}>
+					<input pattern="[a-zA-Z0-9_-]+" type="text" id="inputBridge" name="bridge" value="{{ cfg.bridge }}"{% if running != [] %} disabled{% endif %}>
 					<span class="help-inline"><small>(e.g lxcbr0)</small></span>
 				</div>
 			</div>
