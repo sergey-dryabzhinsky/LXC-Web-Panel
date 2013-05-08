@@ -346,7 +346,7 @@ def create_container():
                     directory = request.form['dir']
                     if re.match('^/[a-zA-Z0-9_/-]+$', directory) and directory != '':
                         try:
-                            if lxc.create(name, template=template, backing_store='dir --dir %s' % directory) == 0:
+                            if lxc.create(name, template=template, storage='dir --dir %s' % directory) == 0:
                                 flash(u'Container %s created successfully!' % name,'success')
                             else:
                                 flash(u'Failed to create %s!' % name,'error')
@@ -369,7 +369,7 @@ def create_container():
                         storage_options += ' --fssize %s' % fssize
 
                     try:
-                        if lxc.create(name, template=template, backing_store=storage_options) == 0:
+                        if lxc.create(name, template=template, storage=storage_options) == 0:
                             flash(u'Container %s created successfully!' % name,'success')
                         else:
                             flash(u'Failed to create %s!' % name,'error')
