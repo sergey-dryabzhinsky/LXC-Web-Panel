@@ -94,7 +94,7 @@ def edit(container=None):
                 lwp.push_config_value('lxc.network.type', form['type'], container=container)
                 flash(u'Link type updated for %s!' % container, 'success')
 
-            if form['link'] != cfg['link'] and re.match('^\w+$', form['link']):
+            if form['link'] != cfg['link'] and re.match('^[a-zA-Z0-9_-]+$', form['link']):
                 lwp.push_config_value('lxc.network.link', form['link'], container=container)
                 flash(u'Link name updated for %s!' % container, 'success')
 
@@ -159,7 +159,7 @@ def lxc_net():
                 except KeyError:
                     cfg = lwp.get_net_settings()
                     ip_regex = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
-                    if request.form['bridge'] != cfg['bridge'] and re.match('^\w+$', request.form['bridge']):
+                    if request.form['bridge'] != cfg['bridge'] and re.match('^[a-zA-Z0-9_-]+$', request.form['bridge']):
                         lwp.push_net_value('LXC_BRIDGE', request.form['bridge'])
 
                     if request.form['address'] != cfg['address'] and re.match('^%s$' % ip_regex, request.form['address']):
