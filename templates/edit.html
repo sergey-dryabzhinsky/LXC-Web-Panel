@@ -54,7 +54,7 @@
 					<div class="control-group">
 						<label class="control-label" for="inputLink">Network link</label>
 						<div class="controls">
-							<input pattern="\w+" type="text" id="inputLink" name="link" value="{{ settings.link }}" placeholder="Undefined">
+							<input pattern="[a-zA-Z0-9_-]+" type="text" id="inputLink" name="link" value="{{ settings.link }}" placeholder="Undefined">
 						</div>
 					</div>
 
@@ -111,7 +111,7 @@
 				<div class="control-group">
 					<label class="control-label" for="inputRootfs">Root FS</label>
 					<div class="controls">
-						<input pattern="[a-zA-Z0-9_/]+" type="text" id="inputRootfs" name="rootfs" value="{{ settings.rootfs }}" placeholder="Undefined (LVM or BTRFS)">
+						<input pattern="[a-zA-Z0-9-_/]+" type="text" id="inputRootfs" name="rootfs" value="{{ settings.rootfs }}" placeholder="Undefined (LVM or BTRFS)">
 						<span class="help-inline"><small>(e.g /var/lib/lxc/{{container}}/rootfs)</small></span>
 					</div>
 				</div>
