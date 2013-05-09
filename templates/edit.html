@@ -84,7 +84,7 @@
 				</div>
 
 				<div class="control-group">
-					<label class="control-label" for="inputSwlimit">Swap limit *</label>
+					<label class="control-label" for="inputSwlimit">Memory + Swap limit *</label>
 					<div class="controls">
 						<input pattern="[0-9]+" type="range" id="inputSwlimit" name="swlimit" min="32" max="{{ host_memory.total * 2 }}" step="2" value="{% if settings.swlimit %}{{ settings.swlimit }}{% else %}{{ host_memory.total * 2 }}{% endif %}" onChange="updateSw('Swlimit', this.value);">
 						<span class="help-inline" id="Swlimit">{% if settings.swlimit %}{{ settings.swlimit }} MB{% else %}Unlimited{% endif %}</span>
@@ -111,7 +111,7 @@
 				<div class="control-group">
 					<label class="control-label" for="inputRootfs">Root FS</label>
 					<div class="controls">
-						<input pattern="[a-zA-Z0-9-_/]+" type="text" id="inputRootfs" name="rootfs" value="{{ settings.rootfs }}" placeholder="Undefined (LVM or BTRFS)">
+						<input pattern="[a-zA-Z0-9_/\-]+" type="text" id="inputRootfs" name="rootfs" value="{{ settings.rootfs }}" placeholder="Undefined (LVM or BTRFS)">
 						<span class="help-inline"><small>(e.g /var/lib/lxc/{{container}}/rootfs)</small></span>
 					</div>
 				</div>
