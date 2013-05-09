@@ -39,7 +39,7 @@ def teardown_request(exception):
     if hasattr(g, 'db'):
         g.db.close()
 
-#Home
+# Home
 @app.route('/')
 @app.route('/home')
 def home():
@@ -49,7 +49,13 @@ def home():
         sorted_list = listx['RUNNING'] + listx['FROZEN'] + listx['STOPPED']
         for container in sorted_list:
             status = lxc.info(container)['state']
-            containers_all.append({'status':status, 'name':container, 'memusg':lwp.memory_usage(container), 'settings':lwp.get_container_settings(container)})
+            containers_all.append({
+                'status': status,
+                'name': container,
+                'memusg': lwp.memory_usage(container),
+                'max_memusg': lwp.max_memory_usage(container),
+                'settings': lwp.get_container_settings(container)
+            })
         return render_template('index.html', containers=lwp.ls(), containers_all=containers_all, dist=lwp.check_ubuntu(), templates=lwp.get_templates_list())
     return render_template('login.html')
 
@@ -59,12 +65,12 @@ def about():
         return render_template('about.html', containers=lwp.ls(), version=lwp.check_version())
     return render_template('login.html')
 
-#Edit
+# Edit
 @app.route('/<container>/edit', methods=['POST', 'GET'])
 def edit(container=None):
     if 'logged_in' in session:
         host_memory = lwp.host_memory_usage()
-        
+
         if request.method == 'POST':
             cfg = lwp.get_container_settings(container)
             ip_regex = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
@@ -132,14 +138,16 @@ def edit(container=None):
         status = info['state']
         pid = info['pid']
 
-        infos = {'status':status, 'pid':pid, 'memusg':lwp.memory_usage(container)}
+        infos = {'status': status, 'pid': pid, 'memusg': lwp.memory_usage(container)}
         return render_template('edit.html', containers=lwp.ls(), container=container, infos=infos, settings=lwp.get_container_settings(container), host_memory=host_memory)
     return render_template('login.html')
-        
+
+
 @app.route('/settings/lxc-net', methods=['POST', 'GET'])
 def lxc_net():
     if 'logged_in' in session:
-        if session['su'] != 'Yes': return abort(403)
+        if session['su'] != 'Yes':
+            return abort(403)
 
         if request.method == 'POST':
             if lxc.running() == []:
@@ -171,7 +179,7 @@ def lxc_net():
                     if request.form['network'] != cfg['network'] and re.match('^%s(?:/\d{1,2}|)$' % ip_regex, request.form['network']):
                         lwp.push_net_value('LXC_NETWORK', request.form['network'])
 
-                    if request.form['range'] != cfg['range'] and re.match('^%s,%s$' % (ip_regex,ip_regex), request.form['range']):
+                    if request.form['range'] != cfg['range'] and re.match('^%s,%s$' % (ip_regex, ip_regex), request.form['range']):
                         lwp.push_net_value('LXC_DHCP_RANGE', request.form['range'])
 
                     if request.form['max'] != cfg['max'] and re.match('^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', request.form['max']):
@@ -184,18 +192,22 @@ def lxc_net():
                 flash(u'Stop all containers before restart lxc-net.', 'warning')
         return render_template('lxc-net.html', containers=lwp.ls(), cfg=lwp.get_net_settings(), running=lxc.running())
     return render_template('login.html')
-    
+
 
 @app.route('/lwp/users', methods=['POST', 'GET'])
 def lwp_users():
     if 'logged_in' in session:
-        if session['su'] != 'Yes': return abort(403)
+        if session['su'] != 'Yes':
+            return abort(403)
 
-        try: trash = request.args.get('trash')
-        except KeyError: trash = 0
+        try:
+            trash = request.args.get('trash')
+        except KeyError:
+            trash = 0
 
         if request.args.get('token') == session.get('token') and trash == '1' and request.args.get('userid') and request.args.get('username'):
-            g.db.execute("DELETE FROM users WHERE id=? AND username=?", [request.args.get('userid'), request.args.get('username')])
+            g.db.execute("DELETE FROM users WHERE id=? AND username=?", [
+                         request.args.get('userid'), request.args.get('username')])
             g.db.commit()
             flash('Deleted %s' % request.args.get('username'), 'success')
             return redirect(url_for('lwp_users'))
@@ -209,17 +221,23 @@ def lwp_users():
                         if request.form['password1'] == request.form['password2']:
                             if request.form['name']:
                                 if re.match('[a-z A-Z0-9]{3,32}', request.form['name']):
-                                    g.db.execute("INSERT INTO users (name, username, password) VALUES (?, ?, ?)", [request.form['name'], request.form['username'], hash_passwd(request.form['password1'])])
+                                    g.db.execute("INSERT INTO users (name, username, password) VALUES (?, ?, ?)", [
+                                                 request.form['name'], request.form['username'], hash_passwd(request.form['password1'])])
                                     g.db.commit()
-                                else: flash('Invalid name!', 'error')
+                                else:
+                                    flash('Invalid name!', 'error')
                             else:
-                                g.db.execute("INSERT INTO users (username, password) VALUES (?, ?)", [request.form['username'], hash_passwd(request.form['password1'])])
+                                g.db.execute("INSERT INTO users (username, password) VALUES (?, ?)", [
+                                             request.form['username'], hash_passwd(request.form['password1'])])
                                 g.db.commit()
 
                             flash('Created %s' % request.form['username'], 'success')
-                        else: flash('No password match', 'error')
-                    else: flash('Invalid username or password!', 'error')
-                else: flash('Username already exist!', 'error')
+                        else:
+                            flash('No password match', 'error')
+                    else:
+                        flash('Invalid username or password!', 'error')
+                else:
+                    flash('Username already exist!', 'error')
 
             elif request.form['newUser'] == 'False':
                 if request.form['password1'] == request.form['password2']:
@@ -233,51 +251,62 @@ def lwp_users():
                             g.db.execute("UPDATE users SET name='', su=? WHERE username=?", [su, request.form['username']])
                             g.db.commit()
                         elif request.form['name'] and not request.form['password1'] and not request.form['password2']:
-                            g.db.execute("UPDATE users SET name=?, su=? WHERE username=?", [request.form['name'], su, request.form['username']])
+                            g.db.execute("UPDATE users SET name=?, su=? WHERE username=?", [
+                                         request.form['name'], su, request.form['username']])
                             g.db.commit()
                         elif request.form['name'] and request.form['password1'] and request.form['password2']:
-                            g.db.execute("UPDATE users SET name=?, password=?, su=? WHERE username=?", [request.form['name'], hash_passwd(request.form['password1']), su, request.form['username']])
+                            g.db.execute("UPDATE users SET name=?, password=?, su=? WHERE username=?", [request.form[
+                                         'name'], hash_passwd(request.form['password1']), su, request.form['username']])
                             g.db.commit()
                         elif request.form['password1'] and request.form['password2']:
-                            g.db.execute("UPDATE users SET password=?, su=? WHERE username=?", [hash_passwd(request.form['password1']), su, request.form['username']])
+                            g.db.execute("UPDATE users SET password=?, su=? WHERE username=?", [
+                                         hash_passwd(request.form['password1']), su, request.form['username']])
                             g.db.commit()
 
                         flash('Updated', 'success')
-                    else: flash('Invalid name!', 'error')
-                else: flash('No password match', 'error')
-            else: flash('Unknown error!', 'error')
+                    else:
+                        flash('Invalid name!', 'error')
+                else:
+                    flash('No password match', 'error')
+            else:
+                flash('Unknown error!', 'error')
 
         users = query_db('SELECT id, name, username, su FROM users ORDER BY id ASC')
 
         return render_template('users.html', containers=lwp.ls(), users=users)
     return render_template('login.html')
 
-#Check config
+# Check config
+
+
 @app.route('/checkconfig')
 def checkconfig():
     if 'logged_in' in session:
-        if session['su'] != 'Yes': return abort(403)
+        if session['su'] != 'Yes':
+            return abort(403)
         return render_template('checkconfig.html', containers=lwp.ls(), cfg=lxc.checkconfig())
     return render_template('login.html')
 
-#Start/Stop/Freeze/Unfreeze
+# Start/Stop/Freeze/Unfreeze
+
+
 @app.route('/action', methods=['GET'])
 def action():
     if 'logged_in' in session:
-        if request.args['token'] == session.get('token') :
+        if request.args['token'] == session.get('token'):
             action = request.args['action']
             name = request.args['name']
 
-            if action == 'start' :
+            if action == 'start':
                 try:
                     if lxc.start(name) == 0:
-                        time.sleep(1) # Fix bug : "the container is randomly not displayed in overview list after a boot"
+                        time.sleep(1)  # Fix bug : "the container is randomly not displayed in overview list after a boot"
                         flash(u'Container %s started successfully!' % name, 'success')
                     else:
                         flash(u'Unable to start %s!' % name, 'error')
                 except lxc.ContainerAlreadyRunning:
                     flash(u'Container %s is already running!' % name, 'error')
-            elif action == 'stop' :
+            elif action == 'stop':
                 try:
                     if lxc.stop(name) == 0:
                         flash(u'Container %s stopped successfully!' % name, 'success')
@@ -285,7 +314,7 @@ def action():
                         flash(u'Unable to stop %s!' % name, 'error')
                 except lxc.ContainerNotRunning:
                     flash(u'Container %s is already stopped!' % name, 'error')
-            elif action == 'freeze' :
+            elif action == 'freeze':
                 try:
                     if lxc.freeze(name) == 0:
                         flash(u'Container %s frozen successfully!' % name, 'success')
@@ -293,7 +322,7 @@ def action():
                         flash(u'Unable to freeze %s!' % name, 'error')
                 except lxc.ContainerNotRunning:
                     flash(u'Container %s not running!' % name, 'error')
-            elif action == 'unfreeze' :
+            elif action == 'unfreeze':
                 try:
                     if lxc.unfreeze(name) == 0:
                         flash(u'Container %s unfrozen successfully!' % name, 'success')
@@ -301,14 +330,14 @@ def action():
                         flash(u'Unable to unfeeze %s!' % name, 'error')
                 except lxc.ContainerNotRunning:
                     flash(u'Container %s not frozen!' % name, 'error')
-            elif action == 'destroy' :
+            elif action == 'destroy':
                 try:
                     if lxc.destroy(name) == 0:
                         flash(u'Container %s destroyed successfully!' % name, 'success')
                     else:
                         flash(u'Unable to destroy %s!' % name, 'error')
                 except lxc.ContainerDoesntExists:
-                    flash(u'The Container %s does not exists!' % name,'error')
+                    flash(u'The Container %s does not exists!' % name, 'error')
             elif action == 'reboot' and name == 'host':
                 msg = '\v*** LXC Web Panel *** \
                         \nReboot from web panel'
@@ -326,32 +355,34 @@ def action():
             return redirect(url_for('home'))
     return render_template('login.html')
 
+
 @app.route('/action/create-container', methods=['GET', 'POST'])
 def create_container():
     if 'logged_in' in session:
         if request.method == 'POST':
             name = request.form['name']
             template = request.form['template']
+            xargs = request.form['ccommand']
             if re.match('^(?!^containers$)|[a-zA-Z0-9_-]+$', name):
                 storage_method = request.form['backingstore']
                 if storage_method == 'default':
                     try:
-                        if lxc.create(name, template=template) == 0:
-                            flash(u'Container %s created successfully!' % name,'success')
+                        if lxc.create(name, template=template, xargs=xargs) == 0:
+                            flash(u'Container %s created successfully!' % name, 'success')
                         else:
-                            flash(u'Failed to create %s!' % name,'error')
+                            flash(u'Failed to create %s!' % name, 'error')
                     except lxc.ContainerAlreadyExists:
-                        flash(u'The Container %s is already created!' % name,'error')
+                        flash(u'The Container %s is already created!' % name, 'error')
                 elif storage_method == 'directory':
                     directory = request.form['dir']
                     if re.match('^/[a-zA-Z0-9_/-]+$', directory) and directory != '':
                         try:
-                            if lxc.create(name, template=template, storage='dir --dir %s' % directory) == 0:
-                                flash(u'Container %s created successfully!' % name,'success')
+                            if lxc.create(name, template=template, xargs=xargs, storage='dir --dir %s' % directory) == 0:
+                                flash(u'Container %s created successfully!' % name, 'success')
                             else:
-                                flash(u'Failed to create %s!' % name,'error')
+                                flash(u'Failed to create %s!' % name, 'error')
                         except lxc.ContainerAlreadyExists:
-                            flash(u'The Container %s is already created!' % name,'error')
+                            flash(u'The Container %s is already created!' % name, 'error')
                 elif storage_method == 'lvm':
                     lvname = request.form['lvname']
                     vgname = request.form['vgname']
@@ -369,24 +400,26 @@ def create_container():
                         storage_options += ' --fssize %s' % fssize
 
                     try:
-                        if lxc.create(name, template=template, storage=storage_options) == 0:
-                            flash(u'Container %s created successfully!' % name,'success')
+                        if lxc.create(name, template=template, xargs=xargs, storage=storage_options) == 0:
+                            flash(u'Container %s created successfully!' % name, 'success')
                         else:
-                            flash(u'Failed to create %s!' % name,'error')
+                            flash(u'Failed to create %s!' % name, 'error')
                     except lxc.ContainerAlreadyExists:
-                        flash(u'The container/logical volume %s is already created!' % name,'error')
+                        flash(u'The container/logical volume %s is already created!' % name, 'error')
                 else:
-                    flash(u'Missing parameters to create container!','error')
+                    flash(u'Missing parameters to create container!', 'error')
             else:
                 if name == '':
-                    flash(u'Please enter a container name!','error')
+                    flash(u'Please enter a container name!', 'error')
                 else:
-                    flash(u'Invalid name for \"%s\"!' % name,'error')
+                    flash(u'Invalid name for \"%s\"!' % name, 'error')
 
         return redirect(url_for('home'))
     return render_template('login.html')
 
 # Login process
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -395,7 +428,8 @@ def login():
 
         current_url = request.form['url']
 
-        user = query_db('select name, username, su from users where username=? and password=?',[request_username,request_passwd], one=True)
+        user = query_db('select name, username, su from users where username=? and password=?', [
+                        request_username, request_passwd], one=True)
 
         if user:
             session['logged_in'] = True
@@ -404,38 +438,44 @@ def login():
             session['username'] = user['username']
             session['name'] = user['name']
             session['su'] = user['su']
-            flash(u'You are logged in!','success')
+            flash(u'You are logged in!', 'success')
 
             if current_url == url_for('login'):
                 return redirect(url_for('home'))
             return redirect(current_url)
 
-        flash(u'Invalid username or password!','error')
+        flash(u'Invalid username or password!', 'error')
     return render_template('login.html')
 
 # Logout process
+
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     session.pop('token', None)
     session.pop('last_activity', None)
     session.pop('username', None)
-    session.pop('name',None)
-    session.pop('su',None)
-    flash(u'You are logged out!','success')
+    session.pop('name', None)
+    session.pop('su', None)
+    flash(u'You are logged out!', 'success')
     return redirect(url_for('login'))
+
 
 @app.route('/_refresh_cpu_host')
 def refresh_cpu_host():
     return lwp.host_cpu_percent()
 
+
 @app.route('/_refresh_uptime_host')
 def refresh_uptime_host():
     return jsonify(lwp.host_uptime())
 
+
 @app.route('/_refresh_disk_host')
 def refresh_disk_host():
     return jsonify(lwp.host_disk_usage())
+
 
 @app.route('/_refresh_memory_<name>')
 def refresh_memory_containers(name=None):
@@ -444,37 +484,57 @@ def refresh_memory_containers(name=None):
         containers = []
         for container in containers_running:
             container = container.replace(' (auto)', '')
-            containers.append({'name':container, 'memusg':lwp.memory_usage(container)})
+            containers.append({
+                'name': container,
+                'memusg': lwp.memory_usage(container),
+                'max_memusg': lwp.max_memory_usage(container)
+            })
         return jsonify(data=containers)
     elif name == 'host':
-        return jsonify(lwp.host_memory_usage())   
-    return jsonify({'memusg':lwp.memory_usage(name)})
+        return jsonify(lwp.host_memory_usage())
+    return jsonify({
+        'memusg': lwp.memory_usage(name),
+        'max_memusg': lwp.max_memory_usage(name)
+    })
+
+
+@app.route('/_get_container_help_<name>')
+def _get_container_help(name=None):
+    return jsonify({'help': lwp.get_template_help(name)})
+
 
 @app.route('/_check_version')
 def check_version():
     return jsonify(lwp.check_version())
 
+
 def hash_passwd(passwd):
     return hashlib.sha512(passwd).hexdigest()
 
-#Generate security token
+# Generate security token
+
+
 def get_token():
     return hashlib.md5(str(time.time())).hexdigest()
 
-#Perform Queries to database
+# Perform Queries to database
+
+
 def query_db(query, args=(), one=False):
     cur = g.db.execute(query, args)
     rv = [dict((cur.description[idx][0], value) for idx, value in enumerate(row)) for row in cur.fetchall()]
     return (rv[0] if rv else None) if one else rv
 
-#Logout non active user
+# Logout non active user
+
+
 def check_session_limit():
     if 'logged_in' in session and session.get('last_activity') != None:
         now = int(time.time())
         limit = now - 60 * int(config.get('session', 'time'))
         last_activity = session.get('last_activity')
         if last_activity < limit:
-            flash(u'Session timed out !','info')
+            flash(u'Session timed out !', 'info')
             logout()
         else:
             session['last_activity'] = now

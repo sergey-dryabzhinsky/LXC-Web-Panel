@@ -32,6 +32,14 @@
 			<button id ="advancedbutton" class="btn btn-small">Advanced options</button>
 			<div id="advanceddiv" class="hide">
 				<br />
+				<div class="control-group" id="commands">
+					<label class="control-label" for="inputCommand">LXC Container configuration</label>
+					<div class="controls input-prepend">
+						<span class="add-on"><i class="icon-wrench"></i></span>
+						<input type="text" id="inputCommand" name="ccommand" placeholder="Container command">
+					</div>
+					<pre id="templateHelp" class="help-inline"></pre>
+				</div>
 				<div class="control-group">
 					<div class="controls input-prepend">
 						<label class="control-label" for="BackingStore">Backing store*</label>

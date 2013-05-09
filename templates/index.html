@@ -51,7 +51,7 @@
 					<td><a href="../{{i.name}}/edit" title="Click to edit {{i.name}}">{{i.name}}</a></td>
 					<td>{{i.settings.utsname}}</td>
 					<td>{% if i.settings.flags == 'up' %}{% if i.settings.ipv4 != '' %}{{i.settings.ipv4}}{% else %}Undefined{% endif %}{% elif i.settings.flags == 'down' %}Link Down{% endif %}</td>
-					<td id="{{i.name}}">{{ render_memory_wrapper(i.memusg) }}</td>
+					<td id="{{i.name}}">{{ render_memory_wrapper(i.memusg, i.max_memusg ) }}</td>
 					<td>
 						<div class="btn-toolbar" style="margin:8px 0 8px 0;">
 							<div class="btn-group">
@@ -72,8 +72,8 @@
 {% endblock %}
 
 {% macro memory_color(value) -%}{% if value != 0 %}{% if 0 <= value <= 511 %}success{% elif 512 <= value < 980 %}warning{% else %}important{% endif %}{% endif %}{%- endmacro %}
-{% macro render_memory_wrapper(value) -%}
-	{% if value != 0 %}<span class="label label-{{ memory_color(value) }}">{{ value }} MB</span>{% endif %}
+{% macro render_memory_wrapper(value,max) -%}
+	{% if value != 0 %}<span class="label label-{{ memory_color(value) }}">{{ value }} MB of {{max}} MB</span>{% endif %}
 {%- endmacro %}
 
 {% block script %}
@@ -111,7 +111,7 @@
 					data = data.data;
 					for (i in data) {
 						var el = $('#'+data[i].name+' span');
-						el.text(data[i].memusg+' MB');
+						el.text(data[i].memusg+' MB of '+data[i].max_memusg+' MB');
 						el[0].className = el[0].className.replace(/label\-(success|warning|important)/g,'label-'+memory_color(data[i].memusg));
 					}
 				});
@@ -171,24 +171,32 @@
 				 $('#advancedbutton').click(function(e){ e.preventDefault(); $('#advanceddiv').slideToggle(); });
 
 				 $("#BackingStore").on('change',function(){
-						var _val = $(this).val();
-						if( _val == 'lvm'){
-							$('#lvm').slideDown();
-							$('#directory').slideUp();
-						}
-						else if ( _val == 'directory' ){
-							$('#directory').slideDown();
-							$('#lvm').slideUp();
-						}
-						else{
-							$('#directory').slideUp();
-							$('#lvm').slideUp();
-						}
+					var _val = $(this).val();
+					if( _val == 'lvm'){
+						$('#lvm').slideDown();
+						$('#directory').slideUp();
+					}
+					else if ( _val == 'directory' ){
+						$('#directory').slideDown();
+						$('#lvm').slideUp();
+					}
+					else{
+						$('#directory').slideUp();
+						$('#lvm').slideUp();
+					}
+				});
+
+				$("#selectTemplate").on('change',function(){
+					var _val = $(this).val();
+					$.getJSON($SCRIPT_ROOT + '/_get_container_help_'+_val, function(data) {
+						$("#templateHelp").html(data.help.split("(TEMPLATE_OPTIONS):")[1])
 					});
-					$('.modalbutton').on('click', function () {
-						$('.buttons-modal-footer').slideUp()
-						$('.loader-modal-footer').slideDown()
-					})
+
+				});
+				$('.modalbutton').on('click', function () {
+					$('.buttons-modal-footer').slideUp()
+					$('.loader-modal-footer').slideDown()
+				})
 
 			});
 </script>
