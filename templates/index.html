@@ -35,27 +35,30 @@
 		</div>
 		<a href="http://lxc-webpanel.github.io/" target="_blank"><span class="label label-info hide" id="version" style="position:relative; float:right; bottom:0; margin:-20px -23px 0 0;"><i class="icon-info-sign icon-white"></i> New version is out ! (<span id="vernumber"></span>)</span></a>
 	</div>
-	<table class="table table-bordered">
-		<thead>
-			<tr>
-				<th>Status</th>
-				<th>Name</th>
-				<th>Hostname</th>
-				<th>IP Address</th>
-				<th>Mem. usage</th>
-				<th>Actions</th>
-			</tr>
-		</thead>	
-		{% for status in containers_all %}
+    {% for status in containers_all %}
+        <h3>
+            <span class="label label-{{ td[status.status|upper] }}">{{ status.status|capitalize }}</span>
+        </h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Hostname</th>
+                    <th>IP Address</th>
+                    <th>Mem. usage</th>
+                    <th>Disc usage</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
 			{% set container_status = status.status|upper %}
 			<tbody>
 				{% for container in status.containers %}
 					<tr class="{{ tr[status.status|upper] }}">
-						{% if loop.first %}<td rowspan="{{ status.containers|count }}"><span class="label label-{{ td[status.status|upper] }}">{{ status.status|capitalize }}</span></td>{% endif %}
 						<td><a href="{{ url_for('edit',container=container.name) }}" title="Click to edit {{container.name}}">{{container.name}}</a></td>
 						<td>{{container.settings.utsname}}</td>
 						<td>{% if container.settings.flags == 'up' %}{% if container.settings.ipv4 != '' %}{{container.settings.ipv4}}{% else %}Undefined{% endif %}{% elif container.settings.flags == 'down' %}Link Down{% endif %}</td>
-						<td id="{{container.name}}">{{ render_memory_wrapper(container.memusg) }}</td>
+						<td id="{{container.name}}">{{ render_memory_wrapper(container.memusg, container.max_memusg) }}</td>
+						<td id="disc_{{container.name}}">{{ render_disc_wrapper(container.discusg.used, container.discusg.total, container.discusg.unit) }}</td>
 						<td>
 							<div class="btn-toolbar" style="margin:8px 0;">
 								<div class="btn-group">
@@ -70,8 +73,8 @@
 					</tr>
 				{% endfor %}
 			</tbody>
-		{% endfor %}
-	</table>
+    	</table>
+    {% endfor %}
 </div>
 {% if session.su == 'Yes' %}
 	{% include "includes/modal_reboot.html" %}
@@ -85,9 +88,13 @@
 
 {% endblock %}
 
-{% macro memory_color(value) -%}{% if value != 0 %}{% if 0 <= value <= 511 %}success{% elif 512 <= value < 980 %}warning{% else %}important{% endif %}{% endif %}{%- endmacro %}
-{% macro render_memory_wrapper(value,max) -%}
-	{% if value != 0 %}<span class="label label-{{ memory_color(value) }}">{{ value }} MB of {{max}} MB</span>{% endif %}
+{% macro memory_color(value, max) -%}{% if value != 0 %}{% if 0 <= value < max*0.8 %}success{% elif max*0.8 <= value < max*0.9 %}warning{% else %}important{% endif %}{% endif %}{%- endmacro %}
+{% macro render_memory_wrapper(value, max) -%}
+	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} MB of {{max}} MB</span>{% endif %}
+{%- endmacro %}
+
+{% macro render_disc_wrapper(value, max, unit) -%}
+	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} {{ unit }} of {{max}} {{ unit }}</span>{% endif %}
 {%- endmacro %}
 
 {% block script %}
@@ -133,10 +140,23 @@
 				});
 			}
 
+			function refreshDiscContainers(){
+				$.getJSON($SCRIPT_ROOT + '/_refresh_disc_containers', function(data) {
+					data = data.data;
+					for (i in data) {
+						var el = $('#disc_'+data[i].name+' span');
+						el.text(data[i].discusg.used+' '+data[i].discusg.unit+' of '+data[i].discusg.total+' '+data[i].discusg.unit);
+						el[0].className = el[0].className.replace(
+                                /label\-(success|warning|important)/g,
+                                'label-'+memory_color(data[i].discusg.used, data[i].discusg.total));
+					}
+				});
+			}
+
 			function memory_color(value, max_value){
 				if(value != 0) {
                     // 80% - ok
-					if ('0' <= value && value <= max_value*0.8)
+					if ('0' <= value && value < max_value*0.8)
 					    return 'success';
                     // 90% - not ok
 					else if (max_value*0.8 <= value && value < max_value*0.9)
@@ -168,6 +188,7 @@
 				refreshDiskHost();
 				refreshUptimeHost();
 				refreshMemoryContainers();
+				refreshDiscContainers();
 				$('#home-load').fadeOut();
 			}
 

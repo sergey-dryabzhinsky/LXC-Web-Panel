@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../')
-from lxclite import exists, stopped
+from lxclite import exists, stopped, ContainerDoesntExists
 import subprocess
 import os
 import platform
@@ -8,7 +8,6 @@ import time
 import urllib2
 import ConfigParser
 import re
-
 
 class CalledProcessError(Exception):
     pass
@@ -87,7 +86,7 @@ def memory_usage(name):
     returns memory usage in MB
     '''
     if not exists(name):
-        raise ContainerNotExists("The container (%s) does not exist!" % name)
+        raise ContainerDoesntExists("The container (%s) does not exist!" % name)
     if name in stopped():
         return 0
     cmd = ['lxc-cgroup -n %s memory.usage_in_bytes' % name]
@@ -101,7 +100,7 @@ def memory_usage(name):
 
 def max_memory_usage(name):
     if not exists(name):
-        raise ContainerNotExists("The container (%s) does not exist!" % name)
+        raise ContainerDoesntExists("The container (%s) does not exist!" % name)
     if name in stopped():
         return 0
     cmd = ['lxc-cgroup -n %s memory.limit_in_bytes' % name]
@@ -324,9 +323,11 @@ def get_container_settings(name):
     except ConfigParser.NoOptionError:
         cfg['arch'] = ''
     try:
+        cfg['ipv4_real'] = False
         cfg['ipv4'] = config.get('DEFAULT', cgroup['ipv4'])
     except ConfigParser.NoOptionError:
         cfg['ipv4'] = real_ipv4_container(name)
+        cfg['ipv4_real'] = True
     try:
         cfg['memlimit'] = re.sub(r'[a-zA-Z]', '', config.get('DEFAULT', cgroup['memlimit']))
     except ConfigParser.NoOptionError:
@@ -448,3 +449,38 @@ def net_restart():
         return 0
     except CalledProcessError:
         return 1
+
+
+def get_filesystem_usage(container):
+    '''
+    Returns container root filesystem current usage
+    '''
+    result = {
+        'total': 0,
+        'used': 0,
+        'free': 0,
+        'unit' : 'MB',
+        'percent': 0
+    }
+    if container not in stopped():
+        cmd = ["lxc-attach --name %s -- df -k /" % container]
+        try:
+            usage = subprocess.check_output(cmd, shell=True).split('\n')[1].split()
+            result = {'total': int(usage[1])/1024,
+                    'used': int(usage[2])/1024,
+                    'free': int(usage[3])/1024,
+                    'percent': usage[4]}
+            # Format size
+            for unit in ("GB", "TB"):
+                if result['used'] > 1000:
+                    result["used"] /= 1024
+                    result["total"] /= 1024
+                    result["free"] /= 1024
+                    result["unit"] = unit
+                else:
+                    break
+
+        except Exception as e:
+            print(e)
+            pass
+    return result
