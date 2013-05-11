@@ -27,7 +27,7 @@ def get_type(blkdev):
     if out:
         for chunk in out.split():
             if chunk.startswith("TYPE="):
-                fsType = chunk.split("=").strip('"\n')
+                fsType = chunk.split("=").strip('"').strip()
     return fsType
 
 
