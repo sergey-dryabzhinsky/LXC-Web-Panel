@@ -117,6 +117,7 @@ def edit(container=None):
                     form['memlimit'] = ''
                 if form['memlimit'] != cfg['memlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.limit_in_bytes', form['memlimit'], container=container)
+                    lxc.push_cgroup_value(container, 'lxc.cgroup.memory.limit_in_bytes', form['memlimit'])
                     flash(u'Memory limit updated for %s!' % container, 'success')
 
             if ( form['memlimit'] != cfg['memlimit'] or form['swlimit'] != cfg['swlimit'] ) and re.match('^[0-9]+$', form['swlimit']) and int(form['swlimit']) <= int(host_memory['total'] * 2):
@@ -133,14 +134,17 @@ def edit(container=None):
 
                 if form['swlimit'] != cfg['swlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'], container=container)
+                    lxc.push_cgroup_value(container, 'lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'])
                     flash(u'Swap limit updated for %s!' % container, 'success')
 
             if (not form['cpus'] and form['cpus'] != cfg['cpus']) or (form['cpus'] != cfg['cpus'] and re.match('^[0-9,-]+$', form['cpus'])):
                 lwp.push_config_value('lxc.cgroup.cpuset.cpus', form['cpus'], container=container)
+                lxc.push_cgroup_value(container, 'lxc.cgroup.cpuset.cpus', form['cpus'])
                 flash(u'CPUs updated for %s!' % container, 'success')
 
             if (not form['shares'] and form['shares'] != cfg['shares']) or (form['shares'] != cfg['shares'] and re.match('^[0-9]+$', form['shares'])):
                 lwp.push_config_value('lxc.cgroup.cpu.shares', form['shares'], container=container)
+                lxc.push_cgroup_value(container, 'lxc.cgroup.cpu.shares', form['shares'])
                 flash(u'CPU shares updated for %s!' % container, 'success')
 
         info = lxc.info(container)
