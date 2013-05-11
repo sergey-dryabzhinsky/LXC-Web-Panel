@@ -108,7 +108,11 @@ def max_memory_usage(name):
         out = subprocess.check_output(cmd, shell=True).splitlines()
     except:
         return 0
-    return int(out[0])/1024/1024
+    host = host_memory_usage()
+    limit = int(out[0])/1024/1024
+    if limit > host["total"]:
+        limit = host["total"]
+    return limit
 
 
 def real_ipv4_container(name):
@@ -136,6 +140,7 @@ def host_memory_usage():
     returns a dict of host memory usage values
                     {'percent': int((used/total)*100),
                     'percent_cached':int((cached/total)*100),
+                    'swap': int(swap/1024),
                     'used': int(used/1024),
                     'total': int(total/1024)}
     '''
@@ -153,10 +158,14 @@ def host_memory_usage():
         if 'Cached:' == line.split()[0]:
             split = line.split()
             cached = float(split[1])
+        if 'SwapTotal:' == line.split()[0]:
+            split = line.split()
+            swap = float(split[1])
     out.close()
     used = (total - (free + buffers + cached))
-    return {'percent': int((used/total)*100),
-            'percent_cached': int(((cached)/total)*100),
+    return {'percent': int(used*100/total),
+            'percent_cached': int(cached*100/total),
+            'swap': int(swap/1024),
             'used': int(used/1024),
             'total': int(total/1024)}
 
