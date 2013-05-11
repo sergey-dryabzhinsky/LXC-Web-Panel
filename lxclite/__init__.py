@@ -54,6 +54,15 @@ def create(container, template='ubuntu', xargs=None, storage=None):
             
     return _run(command)
 
+def push_cgroup_value(container, key, value):
+    if not exists(container): raise ContainerDoesntExists('Container {} does not exist!'.format(container))
+
+    command = 'lxc-cgroup -n {}'.format(container)
+    command += ' {}'.format(key)
+    command += ' {}'.format(value)
+
+    return _run(command)
+
 def info(container):
     '''
     Check info from lxc-info*
