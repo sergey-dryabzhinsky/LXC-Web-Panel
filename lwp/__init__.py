@@ -45,7 +45,6 @@ class FakeSection(object):
         else:
             return self.fp.readline()
 
-
 def DelSection(filename=None):
     if filename:
         load = open(filename, 'r')
@@ -57,9 +56,8 @@ def DelSection(filename=None):
                 del read[i]
                 break
         load = open(filename, 'w')
-        load.writelines(read)
+        load.writelines(read) 
         load.close()
-
 
 def file_exist(filename):
     '''
@@ -69,22 +67,25 @@ def file_exist(filename):
         with open(filename) as f:
             f.close()
             return True
-    except IOError as e:
+    except IOError:
         return False
 
 
-def ls():
+def ls_auto():
     '''
-    return a list of all containers
+    returns a list of autostart containers
     '''
     try:
-        ct_list = os.listdir('/var/lib/lxc/')
+        auto_list = os.listdir('/etc/lxc/auto/')
     except OSError:
-        ct_list = []
-    return sorted(ct_list)
+        auto_list = []
+    return auto_list
 
 
 def memory_usage(name):
+    '''
+    returns memory usage in MB
+    '''
     if not exists(name):
         raise ContainerNotExists("The container (%s) does not exist!" % name)
     if name in stopped():
@@ -95,6 +96,7 @@ def memory_usage(name):
     except:
         return 0
     return int(out[0])/1024/1024
+
 
 
 def max_memory_usage(name):
@@ -182,7 +184,7 @@ def host_cpu_percent():
     return str('%.1f' % percent)
 
 
-def host_disk_usage():
+def host_disk_usage(partition=None):
     '''
     returns a dict of disk usage values
                     {'total': usage[1],
@@ -190,7 +192,9 @@ def host_disk_usage():
                     'free': usage[3],
                     'percent': usage[4]}
     '''
-    usage = subprocess.check_output(['df -h /'], shell=True).split('\n')[1].split()
+    if not partition:
+        partition = '/'
+    usage = subprocess.check_output(['df -h %s' % partition], shell=True).split('\n')[1].split()
     return {'total': usage[1],
             'used': usage[2],
             'free': usage[3],
@@ -237,7 +241,7 @@ def get_templates_list():
     try:
         path = os.listdir('/usr/share/lxc/templates')
     except:
-        path = os.listdir('/usr/lib/lxc/templates')
+        path = os.listdir('/usr/lib/lxc/templates') 
 
     if path:
         for line in path:
@@ -336,12 +340,18 @@ def get_container_settings(name):
         cfg['shares'] = config.get('DEFAULT', cgroup['shares'])
     except ConfigParser.NoOptionError:
         cfg['shares'] = ''
+
+    if name in ls_auto():
+        cfg['auto'] = True
+    else:
+        cfg['auto'] = False
+
     return cfg
 
 
 def push_net_value(key, value, filename='/etc/default/lxc'):
     '''
-    Raplace a var in the lxc-net config file
+    replace a var in the lxc-net config file
     '''
     if filename:
         config = ConfigParser.RawConfigParser()
@@ -376,10 +386,31 @@ def push_net_value(key, value, filename='/etc/default/lxc'):
 
 def push_config_value(key, value, container=None):
     '''
-    Raplace a var in a container config file
+    replace a var in a container config file
     '''
+
+    def save_cgroup_devices(filename=None):
+        '''
+        returns multiple values (lxc.cgroup.devices.deny and lxc.cgroup.devices.allow) in a list.
+        because ConfigParser cannot make this...
+        '''
+        if filename:
+            values = []
+            i = 0
+
+            load = open(filename, 'r')
+            read = load.readlines()
+            load.close()
+
+            while i < len(read):
+                if not read[i].startswith('#') and re.match('lxc.cgroup.devices.deny|lxc.cgroup.devices.allow', read[i]):
+                    values.append(read[i])
+                i += 1
+            return values
+
     if container:
         filename = '/var/lib/lxc/%s/config' % container
+        save = save_cgroup_devices(filename=filename)
 
         config = ConfigParser.RawConfigParser()
         config.readfp(FakeSection(open(filename)))
@@ -399,6 +430,9 @@ def push_config_value(key, value, container=None):
             config.write(configfile)
 
         DelSection(filename=filename)
+
+        with open(filename, "a") as configfile:
+            configfile.writelines(save)
 
 
 def net_restart():
