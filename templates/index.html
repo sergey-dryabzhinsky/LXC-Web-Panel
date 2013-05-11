@@ -199,6 +199,7 @@
 
 			$(function() {
 				refresh();
+				refreshLong();
 				check_version();
 				{% if session.su == 'Yes' and containers == [] %}$('#createCT').modal('show'){% endif %}
 				window.setInterval('refresh()', 15*1000);

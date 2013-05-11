@@ -198,8 +198,12 @@
                     refreshDisk("{{ container }}");
                 }
 
-				window.setInterval(function(){ refresh(); }, 15*1000);
-				window.setInterval(function(){ refreshLong(); }, 300*1000);
+                $(function() {
+                    refresh();
+                    refreshLong();
+                    window.setInterval('refresh()', 15*1000);
+                    window.setInterval('refreshLong()', 300*1000);
+                });
 			{% endif %}
 
 			// Network flags
