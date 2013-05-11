@@ -192,10 +192,14 @@
 
                 function refresh() {
                     refreshMemory("{{ container }}");
+                }
+
+                function refreshLong() {
                     refreshDisk("{{ container }}");
                 }
 
-				window.setInterval(function(){ refresh(); }, 5000);
+				window.setInterval(function(){ refresh(); }, 15*1000);
+				window.setInterval(function(){ refreshLong(); }, 300*1000);
 			{% endif %}
 
 			// Network flags

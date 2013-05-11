@@ -185,9 +185,14 @@
 				$('#home-load').fadeIn();
 				refreshMemoryHost();
 				refreshCPUHost();
-				refreshDiskHost();
 				refreshUptimeHost();
 				refreshMemoryContainers();
+				$('#home-load').fadeOut();
+			}
+
+			function refreshLong(){
+				$('#home-load').fadeIn();
+				refreshDiskHost();
 				refreshDiskContainers();
 				$('#home-load').fadeOut();
 			}
@@ -196,7 +201,8 @@
 				refresh();
 				check_version();
 				{% if session.su == 'Yes' and containers == [] %}$('#createCT').modal('show'){% endif %}
-				window.setInterval('refresh()', 15000);
+				window.setInterval('refresh()', 15*1000);
+				window.setInterval('refreshLong()', 300*1000);
 			});
 
 			{% if session.su == 'Yes' %}$(document).ready(function(){
