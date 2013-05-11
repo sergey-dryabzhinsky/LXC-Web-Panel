@@ -126,19 +126,24 @@
 					for (i in data) {
 						var el = $('#'+data[i].name+' span');
 						el.text(data[i].memusg+' MB of '+data[i].max_memusg+' MB');
-						el[0].className = el[0].className.replace(/label\-(success|warning|important)/g,'label-'+memory_color(data[i].memusg));
+						el[0].className = el[0].className.replace(
+                                /label\-(success|warning|important)/g,
+                                'label-'+memory_color(data[i].memusg, data[i].max_memusg));
 					}
 				});
 			}
 
-			function memory_color(value){
-				if(value != 0)
-					if ('0' <= value && value <= '512')
-						 return 'success';
-					else if ('512' <= value && value < '1024')
+			function memory_color(value, max_value){
+				if(value != 0) {
+                    // 80% - ok
+					if ('0' <= value && value <= max_value*0.8)
+					    return 'success';
+                    // 90% - not ok
+					else if (max_value*0.8 <= value && value < max_value*0.9)
 						return 'warning';
 					else
 						return 'important';
+                }
 			}
 
 			function check_version(){
