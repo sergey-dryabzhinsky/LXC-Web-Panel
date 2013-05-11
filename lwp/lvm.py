@@ -25,6 +25,6 @@ def is_lvm(blkdev):
     Check block device - maybe it is logical volume
     '''
     if (os.path.exists(blkdev) and not os.path.isdir(blkdev)):
-        if stat.S_ISBLK( os.lstat(blkdev).st_mode ):
+        if stat.S_ISBLK( os.stat(blkdev).st_mode ):
             return True
     return False
