@@ -241,43 +241,48 @@ def lxc_net():
 
         if request.method == 'POST':
             if lxc.running() == []:
-                try:
-                    if request.form['status'] == 'Enable':
-                        lwp.push_net_value('USE_LXC_BRIDGE', 'true')
-                        if lwp.net_restart() == 0:
-                            flash(u'LXC Networking enabled successfully!', 'success')
-                        else:
-                            flash(u'Failed to restart LXC networking.', 'error')
-                    elif request.form['status'] == 'Disable':
-                        lwp.push_net_value('USE_LXC_BRIDGE', 'false')
-                        if lwp.net_restart() == 0:
-                            flash(u'LXC Networking disabled successfully!', 'success')
-                        else:
-                            flash(u'Failed to restart LXC networking.', 'error')
-                except KeyError:
-                    cfg = lwp.get_net_settings()
-                    ip_regex = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
-                    if request.form['bridge'] != cfg['bridge'] and re.match('^\w+$', request.form['bridge']):
-                        lwp.push_net_value('LXC_BRIDGE', request.form['bridge'])
 
-                    if request.form['address'] != cfg['address'] and re.match('^%s$' % ip_regex, request.form['address']):
-                        lwp.push_net_value('LXC_ADDR', request.form['address'])
+                cfg = lwp.get_net_settings()
 
-                    if request.form['netmask'] != cfg['netmask'] and re.match('^%s$' % ip_regex, request.form['netmask']):
-                        lwp.push_net_value('LXC_NETMASK', request.form['netmask'])
-
-                    if request.form['network'] != cfg['network'] and re.match('^%s(?:/\d{1,2}|)$' % ip_regex, request.form['network']):
-                        lwp.push_net_value('LXC_NETWORK', request.form['network'])
-
-                    if request.form['range'] != cfg['range'] and re.match('^%s,%s$' % (ip_regex, ip_regex), request.form['range']):
-                        lwp.push_net_value('LXC_DHCP_RANGE', request.form['range'])
-
-                    if request.form['max'] != cfg['max'] and re.match('^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', request.form['max']):
-                        lwp.push_net_value('LXC_DHCP_MAX', request.form['max'])
+                if request.form['status'] == 'Disable' and cfg["use"] == "true":
+                    lwp.push_net_value('USE_LXC_BRIDGE', 'false')
                     if lwp.net_restart() == 0:
-                        flash(u'LXC Network settings applied successfully!', 'success')
+                        flash(u'LXC Networking disabled successfully!', 'success')
                     else:
                         flash(u'Failed to restart LXC networking.', 'error')
+
+                if request.form['status'] == 'Enable' and cfg["use"] == "false":
+                    lwp.push_net_value('USE_LXC_BRIDGE', 'true')
+                    if lwp.net_restart() == 0:
+                        flash(u'LXC Networking enabled successfully!', 'success')
+                    else:
+                        flash(u'Failed to restart LXC networking.', 'error')
+
+                ip_regex = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
+                if request.form['bridge'] != cfg['bridge'] and re.match('^[a-zA-Z0-9]+$', request.form['bridge']):
+                    flash(u'LXC Networking: Bridge name changed!', 'success')
+                    lwp.push_net_value('LXC_BRIDGE', request.form['bridge'])
+
+                if request.form['address'] != cfg['address'] and re.match('^%s$' % ip_regex, request.form['address']):
+                    flash(u'LXC Networking: IP address changed!', 'success')
+                    lwp.push_net_value('LXC_ADDR', request.form['address'])
+
+                if request.form['netmask'] != cfg['netmask'] and re.match('^%s$' % ip_regex, request.form['netmask']):
+                    flash(u'LXC Networking: Netmask changed!', 'success')
+                    lwp.push_net_value('LXC_NETMASK', request.form['netmask'])
+
+                if request.form['network'] != cfg['network'] and re.match('^%s(?:/\d{1,2}|)$' % ip_regex, request.form['network']):
+                    flash(u'LXC Networking: Network changed!', 'success')
+                    lwp.push_net_value('LXC_NETWORK', request.form['network'])
+
+                if request.form['range'] != cfg['range'] and re.match('^%s,%s$' % (ip_regex, ip_regex), request.form['range']):
+                    flash(u'LXC Networking: DHCP range changed!', 'success')
+                    lwp.push_net_value('LXC_DHCP_RANGE', request.form['range'])
+
+                if request.form['max'] != cfg['max'] and re.match('^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', request.form['max']):
+                    flash(u'LXC Networking: DHCP max IP changed!', 'success')
+                    lwp.push_net_value('LXC_DHCP_MAX', request.form['max'])
+
             else:
                 flash(u'Stop all containers before restart lxc-net.', 'warning')
         return render_template('lxc-net.html', containers=lxc.ls(), cfg=lwp.get_net_settings(), running=lxc.running())

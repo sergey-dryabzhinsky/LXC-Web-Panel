@@ -86,20 +86,20 @@
 
 			if ('{{cfg.use}}' == 'false') {
 				inputStatus.val('Disable');
-				inputText.attr('disabled', 'disabled');
-				networking.fadeTo(0, 0.4);
+				//inputText.attr('disabled', 'disabled');
+				//networking.fadeTo(0, 0.4);
 			}
 
 			$(".switch-networking").on('switch-change', function(e, data){
 				if(data.value){
 					inputStatus.val('Enable');
-					inputText.removeAttr('disabled');
-					networking.fadeTo(400, 1);
+					//inputText.removeAttr('disabled');
+					//networking.fadeTo(400, 1);
 				}
 				else{
 					inputStatus.val('Disable');
-					inputText.attr('disabled', 'disabled');
-					networking.fadeTo(400, 0.4);
+					//inputText.attr('disabled', 'disabled');
+					//networking.fadeTo(400, 0.4);
 				}
 			});
 		});
