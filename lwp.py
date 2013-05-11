@@ -69,7 +69,7 @@ def home():
                     'name': container,
                     'memusg': lwp.memory_usage(container),
                     'max_memusg': lwp.max_memory_usage(container),
-                    'discusg': lwp.get_filesystem_usage(container),
+                    'diskusg': lwp.get_filesystem_usage(container),
                     'settings': lwp.get_container_settings(container)
                 })
             containers_all.append({
@@ -217,7 +217,7 @@ def edit(container=None):
             'pid': pid,
             'memusg': lwp.memory_usage(container),
             'max_memusg': lwp.max_memory_usage(container),
-            'discusg': lwp.get_filesystem_usage(container)
+            'diskusg': lwp.get_filesystem_usage(container)
         }
 
         settings = lwp.get_container_settings(container)
@@ -684,8 +684,8 @@ def refresh_memory_containers(name=None):
         })
 
 
-@app.route('/_refresh_disc_<name>')
-def refresh_disc_containers(name=None):
+@app.route('/_refresh_disk_<name>')
+def refresh_disk_containers(name=None):
     if 'logged_in' in session:
         if name == 'containers':
             containers_running = lxc.running()
@@ -694,13 +694,13 @@ def refresh_disc_containers(name=None):
                 container = container.replace(' (auto)', '')
                 containers.append({
                     'name': container,
-                    'discusg': lwp.get_filesystem_usage(container),
+                    'diskusg': lwp.get_filesystem_usage(container),
                 })
             return jsonify(data=containers)
         elif name == 'host':
             return jsonify(lwp.host_disk_usage())
         return jsonify({
-            'discusg': lwp.get_filesystem_usage(name),
+            'diskusg': lwp.get_filesystem_usage(name),
         })
 
 

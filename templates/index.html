@@ -46,7 +46,7 @@
                     <th>Hostname</th>
                     <th>IP Address</th>
                     <th>Mem. usage</th>
-                    <th>Disc usage</th>
+                    <th>Disk usage</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -58,7 +58,7 @@
 						<td>{{container.settings.utsname}}</td>
 						<td>{% if container.settings.flags == 'up' %}{% if container.settings.ipv4 != '' %}{{container.settings.ipv4}}{% else %}Undefined{% endif %}{% elif container.settings.flags == 'down' %}Link Down{% endif %}</td>
 						<td id="{{container.name}}">{{ render_memory_wrapper(container.memusg, container.max_memusg) }}</td>
-						<td id="disc_{{container.name}}">{{ render_disc_wrapper(container.discusg.used, container.discusg.total, container.discusg.unit) }}</td>
+						<td id="disk_{{container.name}}">{{ render_disk_wrapper(container.diskusg.used, container.diskusg.total, container.diskusg.unit) }}</td>
 						<td>
 							<div class="btn-toolbar" style="margin:8px 0;">
 								<div class="btn-group">
@@ -93,7 +93,7 @@
 	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} MB of {{max}} MB</span>{% endif %}
 {%- endmacro %}
 
-{% macro render_disc_wrapper(value, max, unit) -%}
+{% macro render_disk_wrapper(value, max, unit) -%}
 	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} {{ unit }} of {{max}} {{ unit }}</span>{% endif %}
 {%- endmacro %}
 
@@ -140,15 +140,15 @@
 				});
 			}
 
-			function refreshDiscContainers(){
-				$.getJSON($SCRIPT_ROOT + '/_refresh_disc_containers', function(data) {
+			function refreshDiskContainers(){
+				$.getJSON($SCRIPT_ROOT + '/_refresh_disk_containers', function(data) {
 					data = data.data;
 					for (i in data) {
-						var el = $('#disc_'+data[i].name+' span');
-						el.text(data[i].discusg.used+' '+data[i].discusg.unit+' of '+data[i].discusg.total+' '+data[i].discusg.unit);
+						var el = $('#disk_'+data[i].name+' span');
+						el.text(data[i].diskusg.used+' '+data[i].diskusg.unit+' of '+data[i].diskusg.total+' '+data[i].diskusg.unit);
 						el[0].className = el[0].className.replace(
                                 /label\-(success|warning|important)/g,
-                                'label-'+memory_color(data[i].discusg.used, data[i].discusg.total));
+                                'label-'+memory_color(data[i].diskusg.used, data[i].diskusg.total));
 					}
 				});
 			}
@@ -188,7 +188,7 @@
 				refreshDiskHost();
 				refreshUptimeHost();
 				refreshMemoryContainers();
-				refreshDiscContainers();
+				refreshDiskContainers();
 				$('#home-load').fadeOut();
 			}
 
