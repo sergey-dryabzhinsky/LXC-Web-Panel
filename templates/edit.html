@@ -69,7 +69,7 @@
 					<div class="control-group">
 						<label class="control-label" for="inputIPaddress">IP address</label>
 						<div class="controls">
-							<input pattern="(^25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?$)|(^Undefined$)" type="text" id="inputIPadress" name="ipaddress" value="{{ settings.ipv4 }}" placeholder="Undefined">
+							<input pattern="(^25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?$)|(^Undefined$)" type="text" id="inputIPadress" name="ipaddress" value="{{ settings.ipv4 }}" placeholder="{{ settings.ipv4_hint }}">
 						</div>
 					</div>
 				</div>
@@ -132,39 +132,70 @@
 			<ul class="nav nav-list">{% set span = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
 				<li class="nav-header">Infos</li>
 				<li><strong>Status :</strong> <span class="label label-{{ span[infos.status] }}">{{ infos.status|capitalize }}</span></li>
-				{% if infos.status != 'STOPPED' %}<li><strong>Pid :</strong> {{ infos.pid }}</li>
+				{% if infos.status != 'STOPPED' %}
+                <li><strong>Pid :</strong> {{ infos.pid }}</li>
 				<li><strong>Network :</strong> {% if settings.flags == 'up' %}<span class="label label-success">Up</span>{% else %}<span class="label label-important">Down</span>{% endif %}</li>
-				{% if infos.memusg %}<li id="{{ container }}"><strong>Mem. usage :</strong> {{ render_memory_wrapper(infos.memusg) }}</li>{% endif %}{% endif %}
+				{% if infos.memusg %}<li id="{{ container }}"><strong>Mem. usage :</strong> {{ render_memory_wrapper(infos.memusg, infos.max_memusg) }}</li>{% endif %}
+				{% if infos.discusg.total %}<li id="disc_{{ container }}"><strong>Disc usage :</strong> {{ render_disc_wrapper(infos.discusg.used, infos.discusg.total, infos.discusg.unit, infos.discusg.percent) }}</li>{% endif %}
+                {% endif %}
 				<li><strong>Arch :</strong> {{ settings.arch }}</li>
 			</ul>
 		</div>
 {% endblock %}
 
-{% macro memory_color(value) -%}{% if value != 0 %}{% if 0 <= value <= 511 %}success{% elif 512 <= value < 980 %}warning{% else %}important{% endif %}{% endif %}{%- endmacro %}
-{% macro render_memory_wrapper(value) -%}
-	{% if value != 0 %}<span class="label label-{{ memory_color(value) }}">{{ value }} MB</span>{% endif %}
+{% macro memory_color(value, max) -%}{% if value != 0 %}{% if 0 <= value < max*0.8 %}success{% elif max*0.8 <= value < max*0.9 %}warning{% else %}important{% endif %}{% endif %}{%- endmacro %}
+{% macro render_memory_wrapper(value, max) -%}
+	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} MB</span>{% endif %}
+{%- endmacro %}
+
+{% macro render_disc_wrapper(value, max, unit, percent) -%}
+	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} {{ unit }} ({{ percent }})</span>{% endif %}
 {%- endmacro %}
 
 {% block script %}
 		<script src="/static/js/bootstrapSwitch.js"></script>
 		<script type="text/javascript">
 			{% if infos['status'] != 'STOPPED' %}
-				function memory_color(value){
-					if(value != 0)
-						if ('0' <= value && value <= '512') return 'success';
-						else if ('512' <= value && value < '1024') return 'warning';
-						else return 'important';
-				}
+                function memory_color(value, max_value){
+                    if(value != 0) {
+                        // 80% - ok
+                        if ('0' <= value && value < max_value*0.8)
+                            return 'success';
+                        // 90% - not ok
+                        else if (max_value*0.8 <= value && value < max_value*0.9)
+                            return 'warning';
+                        else
+                            return 'important';
+                    }
+                }
+
 
 				function refreshMemory(container){
 					$.getJSON($SCRIPT_ROOT + '/_refresh_memory_' + container, function(data) {
 						var el = $('#'+container+' span');
 						el.text(data.memusg+' MB');
-						el[0].className = el[0].className.replace(/label\-(success|warning|important)/g,'label-'+memory_color(data.memusg));
+						el[0].className = el[0].className.replace(
+                                /label\-(success|warning|important)/g,
+                                'label-'+memory_color(data.memusg, data.max_memusg));
 					});
 				}
 
-				window.setInterval('refreshMemory("{{ container }}")', 5000);
+                function refreshDisc(container){
+                    $.getJSON($SCRIPT_ROOT + '/_refresh_disc_'+container, function(data) {
+                        var el = $('#disc_'+data.name+' span');
+                        el.text(data.discusg.used+' '+data.discusg.unit);
+                        el[0].className = el[0].className.replace(
+                                /label\-(success|warning|important)/g,
+                                'label-'+memory_color(data.discusg.used, data.discusg.total));
+                    });
+                }
+
+                function refresh() {
+                    refreshMemory("{{ container }}");
+                    refreshDisc("{{ container }}");
+                }
+
+				window.setInterval(function(){ refresh(); }, 5000);
 			{% endif %}
 
 			// Network flags

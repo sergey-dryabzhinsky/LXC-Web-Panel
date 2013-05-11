@@ -69,6 +69,7 @@ def home():
                     'name': container,
                     'memusg': lwp.memory_usage(container),
                     'max_memusg': lwp.max_memory_usage(container),
+                    'discusg': lwp.get_filesystem_usage(container),
                     'settings': lwp.get_container_settings(container)
                 })
             containers_all.append({
@@ -211,8 +212,21 @@ def edit(container=None):
         status = info['state']
         pid = info['pid']
 
-        infos = {'status': status, 'pid': pid, 'memusg': lwp.memory_usage(container)}
-        return render_template('edit.html', containers=lxc.ls(), container=container, infos=infos, settings=lwp.get_container_settings(container), host_memory=host_memory)
+        infos = {
+            'status': status,
+            'pid': pid,
+            'memusg': lwp.memory_usage(container),
+            'max_memusg': lwp.max_memory_usage(container),
+            'discusg': lwp.get_filesystem_usage(container)
+        }
+
+        settings = lwp.get_container_settings(container)
+        settings["ipv4_hint"] = 'Undefined'
+        if settings["ipv4_real"]:
+            settings["ipv4_hint"] = settings["ipv4"]
+            settings["ipv4"] = ''
+
+        return render_template('edit.html', containers=lxc.ls(), container=container, infos=infos, settings=settings, host_memory=host_memory)
     return render_template('login.html')
 
 
@@ -664,6 +678,25 @@ def refresh_memory_containers(name=None):
             'max_memusg': lwp.max_memory_usage(name)
         })
 
+
+@app.route('/_refresh_disc_<name>')
+def refresh_disc_containers(name=None):
+    if 'logged_in' in session:
+        if name == 'containers':
+            containers_running = lxc.running()
+            containers = []
+            for container in containers_running:
+                container = container.replace(' (auto)', '')
+                containers.append({
+                    'name': container,
+                    'discusg': lwp.get_filesystem_usage(container),
+                })
+            return jsonify(data=containers)
+        elif name == 'host':
+            return jsonify(lwp.host_disk_usage())
+        return jsonify({
+            'discusg': lwp.get_filesystem_usage(name),
+        })
 
 
 @app.route('/_get_container_help_<name>')
