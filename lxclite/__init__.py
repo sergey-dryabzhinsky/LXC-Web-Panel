@@ -91,10 +91,16 @@ def info(container):
     '''
     if not exists(container): raise ContainerDoesntExists('Container {} does not exist!'.format(container))
 
-    output = _run('lxc-info -qn {}'.format(container), output=True).splitlines()
+    output = _run('lxc-info -qn {}'.format(container), output=True)
 
-    return {'state': output[0].split()[1],
-            'pid': output[1].split()[1]}
+    if output:
+        output = output.splitlines()
+
+        return {'state': output[0].split()[1],
+                'pid': output[1].split()[1]}
+
+    return {'state': "Unknown",
+            'pid': -1}
 
 
 def ls():

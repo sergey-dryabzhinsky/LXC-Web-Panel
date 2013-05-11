@@ -238,10 +238,13 @@ def get_templates_list():
     templates = []
     path = None
 
-    try:
-        path = os.listdir('/usr/share/lxc/templates')
-    except:
-        path = os.listdir('/usr/lib/lxc/templates') 
+    templates_path = '/usr/share/lxc/templates'
+    if os.path.exists(templates_path) and os.path.isdir(templates_path):
+        path = os.listdir(templates_path)
+    else:
+        templates_path = '/usr/lib/lxc/templates'
+        if os.path.exists(templates_path) and os.path.isdir(templates_path):
+            path = os.listdir(templates_path)
 
     if path:
         for line in path:

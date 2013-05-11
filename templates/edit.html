@@ -180,22 +180,16 @@
 				}
 			});
 
-			function updateMem(elem, value){
-				if (value < {{ host_memory.total }}) {
-					$('#' + elem).text(value + ' MB');
-				}
+            function updateMemInput(elem, value, mem_total){
+                if (value < mem_total) {
+                    $('#' + elem).val(value).show().next('.help-inline').text('MB');				}
 				else {
-					$('#' + elem).text('Unlimited');
+					$('#' + elem).val(mem_total).hide().next('.help-inline').text('Unlimited');
 				}
 			}
 
-			function updateSw(elem, value){
-				if (value < {{ host_memory.total * 2 }}) {
-					$('#' + elem).text(value + ' MB'); 
-				}
-				else {
-					$('#' + elem).text('Unlimited');
-				}
+            function updateMemSlider(elem, value){
+                $('#' + elem).val(value);
 			}
 		</script>
 {% endblock %}
