@@ -491,7 +491,7 @@ def get_filesystem_usage(container):
                     rootfs = ''
 
                 if rootfs and lvm.is_lvm(rootfs):
-                    result = fs.get_usage(rootfs)
+                    result.update( fs.get_usage(rootfs) )
             except Exception as e:
                 pass
     # Format size
