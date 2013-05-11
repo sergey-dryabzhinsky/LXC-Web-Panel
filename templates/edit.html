@@ -88,7 +88,7 @@
 					<label class="control-label" for="inputSwlimit">Memory + Swap limit *</label>
 					<div class="controls">
 						<input class="fix-height" pattern="[0-9]+" type="range" id="sliderSwlimit" name="swlimit" min="32" max="{{ host_memory.total * 2 }}" step="2" value="{% if settings.swlimit %}{{ settings.swlimit }}{% else %}{{ host_memory.total * 2 }}{% endif %}" onChange="updateMemInput('inputSwlimit', this.value, {{ host_memory.total * 2 }});">
-						<input pattern="[0-9]+" class="input-mini{% if not settings.swlimit %} hide{% endif %}" id="inputSwlimit" type="number" min="32" step="2" max="{{ host_memory.total *2 }}" value="{% if settings.swlimit %}{{ settings.swlimit }}{% endif %}" onChange="updateMemSlider('sliderSwlimit', this.value);"><span class="help-inline fix-height">{% if settings.swlimit %}MB{% else %}Unlimited{% endif %}</span>
+						<input pattern="[0-9]+" class="input-mini{% if not settings.swlimit %} hide{% endif %}" id="inputSwlimit" type="number" min="32" step="2" max="{{ host_memory.total + host_memory.swap }}" value="{% if settings.swlimit %}{{ settings.swlimit }}{% endif %}" onChange="updateMemSlider('sliderSwlimit', this.value);"><span class="help-inline fix-height">{% if settings.swlimit %}MB{% else %}Unlimited{% endif %}</span>
 					</div>
 				</div>
 
