@@ -4,6 +4,8 @@ Functions for work with LVM2
 
 import subprocess
 import os
+import stat
+
 
 def _run(cmd, output=False):
     '''
@@ -23,6 +25,6 @@ def is_lvm(blkdev):
     Check block device - maybe it is logical volume
     '''
     if (os.path.exists(blkdev) and not os.path.isdir(blkdev)):
-        if _run('lvdisplay %s' % blkdev) == 0:
+        if stat.S_ISBLK( os.lstat(blkdev).st_mode ):
             return True
     return False
