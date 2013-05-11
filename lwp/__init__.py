@@ -464,23 +464,44 @@ def get_filesystem_usage(container):
     }
     if container not in stopped():
         cmd = ["lxc-attach --name %s -- df -k /" % container]
+        done = False
         try:
             usage = subprocess.check_output(cmd, shell=True).split('\n')[1].split()
             result = {'total': int(usage[1])/1024,
                     'used': int(usage[2])/1024,
                     'free': int(usage[3])/1024,
                     'percent': usage[4]}
-            # Format size
-            for unit in ("GB", "TB"):
-                if result['used'] > 1000:
-                    result["used"] /= 1024
-                    result["total"] /= 1024
-                    result["free"] /= 1024
-                    result["unit"] = unit
-                else:
-                    break
-
+            done = True
         except Exception as e:
-            print(e)
             pass
+
+        if not done:
+            try:
+                import lvm
+                import fs
+
+                filename = '/var/lib/lxc/%s/config' % container
+
+                config = ConfigParser.RawConfigParser()
+                config.readfp(FakeSection(open(filename)))
+
+                try:
+                    rootfs = config.get('DEFAULT', cgroup['rootfs'])
+                except ConfigParser.NoOptionError:
+                    rootfs = ''
+
+                if rootfs and lvm.is_lvm(rootfs):
+                    result = fs.get_usage(rootfs)
+            except Exception as e:
+                pass
+    # Format size
+    for unit in ("GB", "TB"):
+        if result['used'] > 1000:
+            result["used"] /= 1024
+            result["total"] /= 1024
+            result["free"] /= 1024
+            result["unit"] = unit
+        else:
+            break
+
     return result
