@@ -205,7 +205,7 @@ def edit(container=None):
                 flash(u'Rootfs updated!' % container, 'success')
 
             auto = lwp.ls_auto()
-            if form['autostart'] == 'True' and not container in auto:
+            if form['autostart'] == 'True' and (not container in auto or form['old_priority'] != form['priority']):
                 try:
                     if form['old_priority'].isdigit():
                         old_conf = '/etc/lxc/auto/%06d-%s' % (form['old_priority'], container,)
