@@ -133,7 +133,10 @@ def edit(container=None):
 
 
             form['priority'] = request.form['priority']
-            form['old_priority'] = request.form['old_priority']
+            if form['priority'].isdigit():
+                form['priority'] = int(form['priority'])
+            else:
+                form['priority'] = ''
 
 
             if form['utsname'] != cfg['utsname'] and re.match('(?!^containers$)|^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$', form['utsname']):
@@ -205,10 +208,10 @@ def edit(container=None):
                 flash(u'Rootfs updated!' % container, 'success')
 
             auto = lwp.ls_auto()
-            if form['autostart'] == 'True' and (not container in auto or form['old_priority'] != form['priority']):
+            if form['autostart'] == 'True' and (not container in auto or auto[container] != form['priority']):
                 try:
-                    if form['old_priority'].isdigit():
-                        old_conf = '/etc/lxc/auto/%06d-%s' % (int(form['old_priority']), container,)
+                    if container in auto and auto[container]:
+                        old_conf = '/etc/lxc/auto/%06d-%s' % (auto[container], container,)
                         if os.path.exists(old_conf):
                             os.remove(old_conf)
                             flash(u'Autostart for %s: old priority dropped' % container, 'success')
@@ -218,8 +221,8 @@ def edit(container=None):
                             os.remove(old_conf)
                             flash(u'Autostart for %s: default priority dropped' % container, 'success')
 
-                    if form['priority'].isdigit():
-                        new_conf = '/etc/lxc/auto/%06d-%s' % (int(form['priority']), container, )
+                    if form['priority']:
+                        new_conf = '/etc/lxc/auto/%06d-%s' % (form['priority'], container, )
                         flash(u'Autostart for %s: set new priority' % container, 'success')
                     else:
                         new_conf = '/etc/lxc/auto/%s' % (container,)
@@ -230,8 +233,8 @@ def edit(container=None):
                     flash(u'Unable to create symlink \'/etc/lxc/auto/%s\'' % container, 'error')
             elif not form['autostart'] and container in auto:
                 try:
-                    if form['old_priority'].isdigit():
-                        old_conf = '/etc/lxc/auto/%06d-%s' % (int(form['old_priority']), container, )
+                    if auto[container]:
+                        old_conf = '/etc/lxc/auto/%06d-%s' % (auto[container], container, )
                     else:
                         old_conf = '/etc/lxc/auto/%s' % (container, )
                     os.remove(old_conf)
