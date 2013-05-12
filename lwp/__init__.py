@@ -85,7 +85,7 @@ def ls_auto():
         dig = name.split("-")[0]
         if dig.isdigit():
             prio = int(dig)
-            name = name.replace("%d-" % dig, "")
+            name = "-".join(name.split("-")[1:])
         prio_list[ name ] = prio
         prio += 1
     return prio_list

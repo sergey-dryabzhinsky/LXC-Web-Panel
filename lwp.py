@@ -206,12 +206,12 @@ def edit(container=None):
             if form['autostart'] == 'True' and not container in auto:
                 try:
                     if form['old_priority']:
-                        old_conf = '/etc/lxc/auto/%s-%s' % (container, form['old_priority'],)
+                        old_conf = '/etc/lxc/auto/%06d-%s' % (form['old_priority'], container,)
                         if os.path.exists(old_conf):
                             os.remove(old_conf)
 
                     if form['priority']:
-                        new_conf = '/etc/lxc/auto/%s-%s' % (container, form['priority'],)
+                        new_conf = '/etc/lxc/auto/%06d-%s' % (form['priority'], container, )
                     else:
                         new_conf = '/etc/lxc/auto/%s' % (container,)
 
@@ -222,7 +222,7 @@ def edit(container=None):
             elif not form['autostart'] and container in auto:
                 try:
                     if form['old_priority']:
-                        old_conf = '/etc/lxc/auto/%s-%s' % (container, form['old_priority'],)
+                        old_conf = '/etc/lxc/auto/%06d-%s' % (form['old_priority'], container, )
                     else:
                         old_conf = '/etc/lxc/auto/%s' % (container, )
                     os.remove(old_conf)
