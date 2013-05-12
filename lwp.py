@@ -71,8 +71,6 @@ def home():
                     'max_memusg': lwp.max_memory_usage(container),
                     'settings': lwp.get_container_settings(container)
                 }
-                if status.lower() == 'running':
-                    item['diskusg'] = lwp.get_fake_filesystem_usage(container)
                 containers_by_status.append(item)
 
             containers_all.append({

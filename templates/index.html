@@ -78,9 +78,7 @@
 						<td>{% if container.settings.flags == 'up' %}{% if container.settings.ipv4 != '' %}{{container.settings.ipv4}}{% else %}Undefined{% endif %}{% elif container.settings.flags == 'down' %}Link Down{% endif %}</td>
 						<td id="{{container.name}}">{{ render_memory_wrapper(container.memusg, container.max_memusg) }}</td>
 						<td id="disk_{{container.name}}">
-                            {% if container.diskusg %}
-                            {{ render_disk_wrapper(container.diskusg.used, container.diskusg.total, container.diskusg.unit) }}
-                            {% endif %}
+                            <span class="label"></span>
                         </td>
 						<td>
 							<div class="btn-toolbar" style="margin:8px 0;">
@@ -114,10 +112,6 @@
 {% macro memory_color(value, max) -%}{% if value != 0 %}{% if 0 <= value < max*0.8 %}success{% elif max*0.8 <= value < max*0.9 %}warning{% else %}important{% endif %}{% endif %}{%- endmacro %}
 {% macro render_memory_wrapper(value, max) -%}
 	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} of {{max}} MB</span>{% endif %}
-{%- endmacro %}
-
-{% macro render_disk_wrapper(value, max, unit) -%}
-	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} of {{max}} {{ unit }}</span>{% endif %}
 {%- endmacro %}
 
 {% block script %}
