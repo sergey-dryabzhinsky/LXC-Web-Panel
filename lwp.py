@@ -208,7 +208,7 @@ def edit(container=None):
             if form['autostart'] == 'True' and (not container in auto or form['old_priority'] != form['priority']):
                 try:
                     if form['old_priority'].isdigit():
-                        old_conf = '/etc/lxc/auto/%06d-%s' % (form['old_priority'], container,)
+                        old_conf = '/etc/lxc/auto/%06d-%s' % (int(form['old_priority']), container,)
                         if os.path.exists(old_conf):
                             os.remove(old_conf)
                             flash(u'Autostart for %s: old priority dropped' % container, 'success')
@@ -219,7 +219,7 @@ def edit(container=None):
                             flash(u'Autostart for %s: default priority dropped' % container, 'success')
 
                     if form['priority'].isdigit():
-                        new_conf = '/etc/lxc/auto/%06d-%s' % (form['priority'], container, )
+                        new_conf = '/etc/lxc/auto/%06d-%s' % (int(form['priority']), container, )
                         flash(u'Autostart for %s: set new priority' % container, 'success')
                     else:
                         new_conf = '/etc/lxc/auto/%s' % (container,)
@@ -231,7 +231,7 @@ def edit(container=None):
             elif not form['autostart'] and container in auto:
                 try:
                     if form['old_priority'].isdigit():
-                        old_conf = '/etc/lxc/auto/%06d-%s' % (form['old_priority'], container, )
+                        old_conf = '/etc/lxc/auto/%06d-%s' % (int(form['old_priority']), container, )
                     else:
                         old_conf = '/etc/lxc/auto/%s' % (container, )
                     os.remove(old_conf)
