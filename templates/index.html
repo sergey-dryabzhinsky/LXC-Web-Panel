@@ -33,12 +33,12 @@
 				<p>Uptime : <span id="uptime" class="hide"></span></p>
 			</div>
 		</div>
-        {% if lvm %}
+        {% if lvm and lvm.vgs %}
 		<div class="row">
             <h3>LVM</h3>
 
 			<div class="span3" style="margin-top:29px; margin-left:20px;">
-                {% for vg in lvm %}
+                {% for vg in lvm.vgs %}
 
 				<p>VG {{ vg.name }} usage: <span id="lvm-usage-{{ vg.name }}" class="hide">{{ vg.used }} of {{ vg.total }} {{ vg.unit }}</span></p>
 				<div class="progress" style="width:500px;">
@@ -144,8 +144,8 @@
 
 			function refreshLvmHost(){
 				$.getJSON($SCRIPT_ROOT + '/_refresh_lvm_host', function(data) {
-                    if (!data) return;
-                    $.each(data, function(vg, idx){
+                    if (!data || !data.vgs) return;
+                    $.each(data.vgs, function(vg, idx){
     					$('#lvm-usage-'+vg.name).text(vg.used +' ('+ vg.free +' free) ' + vg.unit).fadeIn();
 	    				$('#lvm-usage-bar-'+vg.name).css({'width':vg.percent});
                     });

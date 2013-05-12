@@ -220,7 +220,7 @@ def host_lvm_usage(vgname=None):
                     },]
     '''
     import lvm
-    return lvm.get_host_usage(vgname)
+    return {'vgs':lvm.get_host_usage(vgname)}
 
 
 def host_uptime():
