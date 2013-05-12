@@ -71,7 +71,7 @@ def home():
                     'max_memusg': lwp.max_memory_usage(container),
                     'settings': lwp.get_container_settings(container)
                 }
-                if status.lower() == 'runing':
+                if status.lower() == 'running':
                     item['diskusg'] = lwp.get_fake_filesystem_usage(container)
                 containers_by_status.append(item)
 
@@ -163,7 +163,7 @@ def edit(container=None):
 
                 if form['memlimit'] != cfg['memlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.limit_in_bytes', form['memlimit'], container=container)
-                    if info["state"].lower() == "runing":
+                    if info["state"].lower() == "running":
                         lxc.push_cgroup_value(container, 'lxc.cgroup.memory.limit_in_bytes', form['memlimit'])
                     flash(u'Memory limit updated for %s!' % container, 'success')
 
@@ -179,7 +179,7 @@ def edit(container=None):
 
                 elif form['swlimit'] != cfg['swlimit'] and form['memlimit'] <= form['swlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'], container=container)
-                    if info["state"].lower() == "runing":
+                    if info["state"].lower() == "running":
                         lxc.push_cgroup_value(container, 'lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'])
                     flash(u'Swap limit updated for %s!' % container, 'success')
 
@@ -187,13 +187,13 @@ def edit(container=None):
 
             if ( not form['cpus'] and form['cpus'] != cfg['cpus'] ) or ( form['cpus'] != cfg['cpus'] and re.match('^[0-9,-]+$', form['cpus']) ):
                 lwp.push_config_value('lxc.cgroup.cpuset.cpus', form['cpus'], container=container)
-                if info["state"].lower() == "runing":
+                if info["state"].lower() == "running":
                     lxc.push_cgroup_value(container, 'lxc.cgroup.cpuset.cpus', form['cpus'])
                 flash(u'CPUs updated for %s!' % container, 'success')
 
             if ( not form['shares'] and form['shares'] != cfg['shares'] ) or ( form['shares'] != cfg['shares'] and re.match('^[0-9]+$', form['shares']) ):
                 lwp.push_config_value('lxc.cgroup.cpu.shares', form['shares'], container=container)
-                if info["state"].lower() == "runing":
+                if info["state"].lower() == "running":
                     lxc.push_cgroup_value(container, 'lxc.cgroup.cpu.shares', form['shares'])
                 flash(u'CPU shares updated for %s!' % container, 'success')
 
