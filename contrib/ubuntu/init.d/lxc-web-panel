@@ -17,6 +17,8 @@ LWP_EXEC=/usr/bin/python
 LWP_WORKDIR=/var/www/LXC-Web-Panel
 LWP_DAEMON=lwp.py
 LWP_PID=/var/run/$NAME.pid
+LWP_USER=root
+LWP_GROUP=www-data
 
 test -x $LWP_EXEC || exit 1
 
@@ -33,7 +35,7 @@ export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
 case "$1" in
   start)
 	log_daemon_msg "Starting $DESC server" "$NAME" || true
-	if start-stop-daemon --background --chdir $LWP_WORKDIR --start --quiet --make-pidfile --pidfile $LWP_PID --exec $LWP_EXEC -- $LWP_DAEMON; then
+	if start-stop-daemon --background --user $LWP_USER --group $LWP_GROUP --chdir $LWP_WORKDIR --start --quiet --make-pidfile --pidfile $LWP_PID --exec $LWP_EXEC -- $LWP_DAEMON; then
 	    log_end_msg 0 || true
 	else
 	    log_end_msg 1 || true
