@@ -131,6 +131,9 @@ def edit(container=None):
             except KeyError:
                 form['autostart'] = False
 
+            form['priority'] = request.form['priority']
+            form['old_priority'] = request.form['old_priority']
+
             if form['utsname'] != cfg['utsname'] and re.match('(?!^containers$)|^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$', form['utsname']):
                 lwp.push_config_value('lxc.utsname', form['utsname'], container=container)
                 flash(u'Hostname updated for %s!' % container, 'success')
@@ -202,13 +205,27 @@ def edit(container=None):
             auto = lwp.ls_auto()
             if form['autostart'] == 'True' and not container in auto:
                 try:
-                    os.symlink('/var/lib/lxc/%s/config' % container, '/etc/lxc/auto/%s' % container)
+                    if form['old_priority']:
+                        old_conf = '/etc/lxc/auto/%s-%s' % (container, form['old_priority'],)
+                        if os.path.exists(old_conf):
+                            os.remove(old_conf)
+
+                    if form['priority']:
+                        new_conf = '/etc/lxc/auto/%s-%s' % (container, form['priority'],)
+                    else:
+                        new_conf = '/etc/lxc/auto/%s' % (container,)
+
+                    os.symlink('/var/lib/lxc/%s/config' % container, new_conf)
                     flash(u'Autostart enabled for %s' % container, 'success')
                 except OSError:
                     flash(u'Unable to create symlink \'/etc/lxc/auto/%s\'' % container, 'error')
             elif not form['autostart'] and container in auto:
                 try:
-                    os.remove('/etc/lxc/auto/%s' % container)
+                    if form['old_priority']:
+                        old_conf = '/etc/lxc/auto/%s-%s' % (container, form['old_priority'],)
+                    else:
+                        old_conf = '/etc/lxc/auto/%s' % (container, )
+                    os.remove(old_conf)
                     flash(u'Autostart disabled for %s' % container, 'success')
                 except OSError:
                     flash(u'Unable to remove symlink', 'error')
@@ -232,7 +249,12 @@ def edit(container=None):
             settings["ipv4_hint"] = settings["ipv4"]
             settings["ipv4"] = ''
 
-        return render_template('edit.html', containers=lxc.ls(), container=container, infos=infos, settings=settings, host_memory=host_memory)
+        return render_template('edit.html',
+                               containers=lxc.ls(),
+                               container=container,
+                               infos=infos,
+                               settings=settings,
+                               host_memory=host_memory)
     return render_template('login.html')
 
 

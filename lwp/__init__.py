@@ -78,7 +78,17 @@ def ls_auto():
         auto_list = os.listdir('/etc/lxc/auto/')
     except OSError:
         auto_list = []
-    return auto_list
+
+    prio = 0
+    prio_list = {}
+    for name in auto_list:
+        dig = name.split("-")[0]
+        if dig.isdigit():
+            prio = int(dig)
+            name = name.replace("%d-" % dig, "")
+        prio_list[ name ] = prio
+        prio += 1
+    return prio_list
 
 
 def memory_usage(name):
@@ -370,10 +380,13 @@ def get_container_settings(name):
     except ConfigParser.NoOptionError:
         cfg['shares'] = ''
 
-    if name in ls_auto():
+    auto_list = ls_auto()
+    if name in auto_list:
         cfg['auto'] = True
+        cfg['priority'] = auto_list[ name ]
     else:
         cfg['auto'] = False
+        cfg['priority'] = ''
 
     return cfg
 
