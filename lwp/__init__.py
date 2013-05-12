@@ -76,18 +76,19 @@ def ls_auto():
     '''
     try:
         auto_list = os.listdir('/etc/lxc/auto/')
+        auto_list.sort()
     except OSError:
         auto_list = []
 
-    prio = 0
     prio_list = {}
     for name in auto_list:
         dig = name.split("-")[0]
         if dig.isdigit():
             prio = int(dig)
             name = "-".join(name.split("-")[1:])
+        else:
+            prio = ''
         prio_list[ name ] = prio
-        prio += 1
     return prio_list
 
 
