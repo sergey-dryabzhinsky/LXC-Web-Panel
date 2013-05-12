@@ -760,5 +760,5 @@ def launch(app):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == 'flup':
-        from lwp.flup import launch
+        from lwp.flup_launch import launch
     launch(app)
