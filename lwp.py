@@ -131,6 +131,11 @@ def edit(container=None):
             except KeyError:
                 form['autostart'] = False
 
+
+            form['priority'] = request.form['priority']
+            form['old_priority'] = request.form['old_priority']
+
+
             if form['utsname'] != cfg['utsname'] and re.match('(?!^containers$)|^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$', form['utsname']):
                 lwp.push_config_value('lxc.utsname', form['utsname'], container=container)
                 flash(u'Hostname updated for %s!' % container, 'success')
