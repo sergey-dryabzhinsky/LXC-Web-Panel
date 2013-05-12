@@ -9,6 +9,10 @@ server {
 
 	set $backend http://127.0.1.2:5000;
 
+	location = /favicon.ico {
+		root /var/www/LXC-Web-Panel/static/ico;
+	}
+
 	location / {
 		try_files $uri $uri/ @backend;
 	}
