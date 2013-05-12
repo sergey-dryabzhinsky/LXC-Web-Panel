@@ -7,6 +7,7 @@ from flup.server.fcgi_fork import WSGIServer
 class ScriptNameStripper(object):
    def __init__(self, app):
        self.app = app
+       self.config = app.config
 
    def __call__(self, environ, start_response):
        environ['SCRIPT_NAME'] = ''
