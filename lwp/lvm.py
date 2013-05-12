@@ -63,13 +63,13 @@ def get_host_usage(vgname=None):
                 'name': sline[0],
                 'total': int(sline[5].strip("B")) / 1024 / 1024,
                 'free': int(sline[6].strip("B")) / 1024 / 1024,
-                'percent': 0,
+                'percent': '0%',
                 'used': 0,
                 'unit': 'Mb'
             }
             item['used'] = item['total'] - item['free']
             if item['total']:
-                item['percent'] = item['used'] * 100 / item['total']
+                item['percent'] = "{}%".format(int(item['used'] * 100 / item['total']))
 
             # Format size
             for unit in ("GB", "TB"):
