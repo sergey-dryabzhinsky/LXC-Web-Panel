@@ -131,6 +131,14 @@ def edit(container=None):
             except KeyError:
                 form['autostart'] = False
 
+
+            form['priority'] = request.form['priority']
+            if form['priority'].isdigit():
+                form['priority'] = int(form['priority'])
+            else:
+                form['priority'] = ''
+
+
             if form['utsname'] != cfg['utsname'] and re.match('(?!^containers$)|^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$', form['utsname']):
                 lwp.push_config_value('lxc.utsname', form['utsname'], container=container)
                 flash(u'Hostname updated for %s!' % container, 'success')
@@ -200,15 +208,36 @@ def edit(container=None):
                 flash(u'Rootfs updated!' % container, 'success')
 
             auto = lwp.ls_auto()
-            if form['autostart'] == 'True' and not container in auto:
+            if form['autostart'] == 'True' and (not container in auto or auto[container] != form['priority']):
                 try:
-                    os.symlink('/var/lib/lxc/%s/config' % container, '/etc/lxc/auto/%s' % container)
+                    if container in auto and auto[container]:
+                        old_conf = '/etc/lxc/auto/%06d-%s' % (auto[container], container,)
+                        if os.path.exists(old_conf):
+                            os.remove(old_conf)
+                            flash(u'Autostart for %s: old priority dropped' % container, 'success')
+                    else:
+                        old_conf = '/etc/lxc/auto/%s' % (container,)
+                        if os.path.exists(old_conf):
+                            os.remove(old_conf)
+                            flash(u'Autostart for %s: default priority dropped' % container, 'success')
+
+                    if form['priority']:
+                        new_conf = '/etc/lxc/auto/%06d-%s' % (form['priority'], container, )
+                        flash(u'Autostart for %s: set new priority' % container, 'success')
+                    else:
+                        new_conf = '/etc/lxc/auto/%s' % (container,)
+
+                    os.symlink('/var/lib/lxc/%s/config' % container, new_conf)
                     flash(u'Autostart enabled for %s' % container, 'success')
                 except OSError:
                     flash(u'Unable to create symlink \'/etc/lxc/auto/%s\'' % container, 'error')
             elif not form['autostart'] and container in auto:
                 try:
-                    os.remove('/etc/lxc/auto/%s' % container)
+                    if auto[container]:
+                        old_conf = '/etc/lxc/auto/%06d-%s' % (auto[container], container, )
+                    else:
+                        old_conf = '/etc/lxc/auto/%s' % (container, )
+                    os.remove(old_conf)
                     flash(u'Autostart disabled for %s' % container, 'success')
                 except OSError:
                     flash(u'Unable to remove symlink', 'error')
@@ -232,7 +261,12 @@ def edit(container=None):
             settings["ipv4_hint"] = settings["ipv4"]
             settings["ipv4"] = ''
 
-        return render_template('edit.html', containers=lxc.ls(), container=container, infos=infos, settings=settings, host_memory=host_memory)
+        return render_template('edit.html',
+                               containers=lxc.ls(),
+                               container=container,
+                               infos=infos,
+                               settings=settings,
+                               host_memory=host_memory)
     return render_template('login.html')
 
 
