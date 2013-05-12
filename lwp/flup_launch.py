@@ -15,5 +15,5 @@ class ScriptNameStripper(object):
 
 def launch(app):
     app = ScriptNameStripper(app)
-    WSGIServer(app, bindAddress=(app.config['ADDRESS'], app.config['POST'],)).run()
+    WSGIServer(app, bindAddress=(app.config['ADDRESS'], app.config['PORT'],)).run()
 
