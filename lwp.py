@@ -752,5 +752,13 @@ def check_session_limit():
         else:
             session['last_activity'] = now
 
-if __name__ == '__main__':
+
+def launch(app):
     app.run(host=app.config['ADDRESS'], port=app.config['PORT'])
+
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == 'flup':
+        from lwp.flup import launch
+    launch(app)
