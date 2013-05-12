@@ -30,7 +30,7 @@ def is_lvm(blkdev):
     return False
 
 
-def get_host_usage(vgname = None):
+def get_host_usage(vgname=None):
     '''
     Get host machine LVM2 volume groups usage
 
@@ -48,9 +48,13 @@ def get_host_usage(vgname = None):
     vgs = []
     if out:
         for line in out.split("\n"):
+
             if line.find("VG") != -1 and line.find("VSize") != -1:
                 continue
             sline = line.strip().split()
+
+            if not sline:
+                continue
 
             if vgname and sline[0] != vgname:
                 continue
