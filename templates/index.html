@@ -148,7 +148,7 @@
 			function refreshLvmHost(){
 				$.getJSON($SCRIPT_ROOT + '/_refresh_lvm_host', function(data) {
                     if (!data || !data.vgs) return;
-                    $.each(data.vgs, function(vg, idx){
+                    $.each(data.vgs, function(idx, vg){
     					$('#lvm-usage-'+vg.name).text(vg.used +' ('+ vg.free +' free) ' + vg.unit).fadeIn();
 	    				$('#lvm-usage-bar-'+vg.name).css({'width':vg.percent});
                     });
