@@ -11,7 +11,7 @@ import os
 import ConfigParser
 
 # configuration
-config = ConfigParser.SafeConfigParser()
+config = ConfigParser.SafeConfigParser(allow_no_value=True)
 config.readfp(open('lwp.conf'))
 
 SECRET_KEY = '\xb13\xb6\xfb+Z\xe8\xd1n\x80\x9c\xe7KM\x1c\xc1\xa7\xf8\xbeY\x9a\xfa<.'
@@ -65,19 +65,25 @@ def home():
         for status in listx:
             containers_by_status = []
             for container in listx[status]:
-                containers_by_status.append({
+                item = {
                     'name': container,
                     'memusg': lwp.memory_usage(container),
                     'max_memusg': lwp.max_memory_usage(container),
-                    'diskusg': lwp.get_filesystem_usage(container),
                     'settings': lwp.get_container_settings(container)
-                })
+                }
+                containers_by_status.append(item)
+
             containers_all.append({
                         'status' : status.lower(),
                         'containers' : containers_by_status
                 })
 
-        return render_template('index.html', containers=lxc.ls(), containers_all=containers_all, dist=lwp.check_ubuntu(), templates=lwp.get_templates_list())
+        return render_template('index.html',
+                               containers=lxc.ls(),
+                               containers_all=containers_all,
+                               dist=lwp.check_ubuntu(),
+                               lvm=lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')),
+                               templates=lwp.get_templates_list())
     return render_template('login.html')
 
 
@@ -155,7 +161,7 @@ def edit(container=None):
 
                 if form['memlimit'] != cfg['memlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.limit_in_bytes', form['memlimit'], container=container)
-                    if info["state"].lower() == "runing":
+                    if info["state"].lower() == "running":
                         lxc.push_cgroup_value(container, 'lxc.cgroup.memory.limit_in_bytes', form['memlimit'])
                     flash(u'Memory limit updated for %s!' % container, 'success')
 
@@ -171,7 +177,7 @@ def edit(container=None):
 
                 elif form['swlimit'] != cfg['swlimit'] and form['memlimit'] <= form['swlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'], container=container)
-                    if info["state"].lower() == "runing":
+                    if info["state"].lower() == "running":
                         lxc.push_cgroup_value(container, 'lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'])
                     flash(u'Swap limit updated for %s!' % container, 'success')
 
@@ -179,13 +185,13 @@ def edit(container=None):
 
             if ( not form['cpus'] and form['cpus'] != cfg['cpus'] ) or ( form['cpus'] != cfg['cpus'] and re.match('^[0-9,-]+$', form['cpus']) ):
                 lwp.push_config_value('lxc.cgroup.cpuset.cpus', form['cpus'], container=container)
-                if info["state"].lower() == "runing":
+                if info["state"].lower() == "running":
                     lxc.push_cgroup_value(container, 'lxc.cgroup.cpuset.cpus', form['cpus'])
                 flash(u'CPUs updated for %s!' % container, 'success')
 
             if ( not form['shares'] and form['shares'] != cfg['shares'] ) or ( form['shares'] != cfg['shares'] and re.match('^[0-9]+$', form['shares']) ):
                 lwp.push_config_value('lxc.cgroup.cpu.shares', form['shares'], container=container)
-                if info["state"].lower() == "runing":
+                if info["state"].lower() == "running":
                     lxc.push_cgroup_value(container, 'lxc.cgroup.cpu.shares', form['shares'])
                 flash(u'CPU shares updated for %s!' % container, 'success')
 
@@ -661,6 +667,11 @@ def refresh_disk_host():
     if 'logged_in' in session:
         return jsonify(lwp.host_disk_usage(partition=config.get('overview', 'partition')))
 
+@app.route('/_refresh_lvm_host')
+def refresh_lvm_host():
+    if 'logged_in' in session:
+        return jsonify(lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')))
+
 
 @app.route('/_refresh_memory_<name>')
 def refresh_memory_containers(name=None):
@@ -713,7 +724,7 @@ def _get_container_help(name=None):
 @app.route('/_check_version')
 def check_version():
     if 'logged_in' in session:
-        return jsonify(lwp.check_version())
+        return jsonify(lwp.check_version(config.get('version', 'url')))
 
 
 def hash_passwd(passwd):
