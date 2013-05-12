@@ -209,6 +209,20 @@ def host_disk_usage(partition=None):
             'percent': usage[4]}
 
 
+def host_lvm_usage(vgname=None):
+    '''
+    returns a list or dict of lvm usage values
+                    [{'total': usage[1],
+                    'used': usage[2],
+                    'free': usage[3],
+                    'percent': usage[4],
+                    'unit': Mb
+                    },]
+    '''
+    import lvm
+    return lvm.get_host_usage(vgname)
+
+
 def host_uptime():
     '''
     returns a dict of the system uptime
@@ -261,14 +275,16 @@ def get_templates_list():
     return sorted(templates)
 
 
-def check_version():
+def check_version(url=None):
     '''
     returns latest LWP version (dict with current and latest)
     '''
     f = open('version')
     current = float(f.read())
     f.close()
-    latest = float(urllib2.urlopen('http://lxc-webpanel.github.com/version').read())
+    if not url:
+        url = 'http://lxc-webpanel.github.com/version'
+    latest = float(urllib2.urlopen(url).read())
     return {'current': current,
             'latest': latest}
 
@@ -460,6 +476,20 @@ def net_restart():
         return 1
 
 
+def get_fake_filesystem_usage(container):
+    '''
+    Returns container root filesystem fake  usage
+    '''
+    result = {
+        'total': 2,
+        'used': 1,
+        'free': 1,
+        'unit' : 'MB',
+        'percent': '50%'
+    }
+    return result
+
+
 def get_filesystem_usage(container):
     '''
     Returns container root filesystem current usage
@@ -469,7 +499,7 @@ def get_filesystem_usage(container):
         'used': 0,
         'free': 0,
         'unit' : 'MB',
-        'percent': 0
+        'percent': '0%'
     }
     if container not in stopped():
         cmd = ["lxc-attach --name %s -- df -k /" % container]

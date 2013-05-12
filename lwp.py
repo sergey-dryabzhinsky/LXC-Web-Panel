@@ -11,7 +11,7 @@ import os
 import ConfigParser
 
 # configuration
-config = ConfigParser.SafeConfigParser()
+config = ConfigParser.SafeConfigParser(allow_no_value=True)
 config.readfp(open('lwp.conf'))
 
 SECRET_KEY = '\xb13\xb6\xfb+Z\xe8\xd1n\x80\x9c\xe7KM\x1c\xc1\xa7\xf8\xbeY\x9a\xfa<.'
@@ -65,19 +65,27 @@ def home():
         for status in listx:
             containers_by_status = []
             for container in listx[status]:
-                containers_by_status.append({
+                item = {
                     'name': container,
                     'memusg': lwp.memory_usage(container),
                     'max_memusg': lwp.max_memory_usage(container),
-                    'diskusg': lwp.get_filesystem_usage(container),
                     'settings': lwp.get_container_settings(container)
-                })
+                }
+                if status.lower() == 'runing':
+                    item['diskusg'] = lwp.get_fake_filesystem_usage(container)
+                containers_by_status.append(item)
+
             containers_all.append({
                         'status' : status.lower(),
                         'containers' : containers_by_status
                 })
 
-        return render_template('index.html', containers=lxc.ls(), containers_all=containers_all, dist=lwp.check_ubuntu(), templates=lwp.get_templates_list())
+        return render_template('index.html',
+                               containers=lxc.ls(),
+                               containers_all=containers_all,
+                               dist=lwp.check_ubuntu(),
+                               lvm=lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')),
+                               templates=lwp.get_templates_list())
     return render_template('login.html')
 
 
@@ -661,6 +669,11 @@ def refresh_disk_host():
     if 'logged_in' in session:
         return jsonify(lwp.host_disk_usage(partition=config.get('overview', 'partition')))
 
+@app.route('/_refresh_lvm_host')
+def refresh_lvm_host():
+    if 'logged_in' in session:
+        return jsonify(lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')))
+
 
 @app.route('/_refresh_memory_<name>')
 def refresh_memory_containers(name=None):
@@ -713,7 +726,7 @@ def _get_container_help(name=None):
 @app.route('/_check_version')
 def check_version():
     if 'logged_in' in session:
-        return jsonify(lwp.check_version())
+        return jsonify(lwp.check_version(config.get('version', 'url')))
 
 
 def hash_passwd(passwd):

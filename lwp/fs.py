@@ -57,7 +57,7 @@ def get_usage_ext234(blkdev):
         result['total'] = block_count * block_size / 1024 / 1024
         result['free'] = block_free * block_size / 1024 / 1024
         result['used'] = result['total'] - result['free']
-        result['percent'] = result['used'] * 100 / result['total']
+        result['percent'] = "{}%".format(result['used'] * 100 / result['total'])
     return result
 
 
@@ -66,7 +66,7 @@ def get_usage(blkdev):
         'total': 0,
         'used': 0,
         'free': 0,
-        'percent': 0
+        'percent': '0%'
     }
     fsType = get_type(blkdev)
     if fsType in ("ext2", "ext3", "ext4"):
