@@ -543,8 +543,17 @@ def get_filesystem_usage(container):
                 except ConfigParser.NoOptionError:
                     rootfs = ''
 
-                if rootfs and lvm.is_lvm(rootfs):
-                    result.update( fs.get_usage(rootfs) )
+                if rootfs:
+                    if lvm.is_lvm(rootfs):
+                        result.update( fs.get_usage(rootfs) )
+                    else:
+                        # Simulate lxc-attach is rootfs is directory
+                        cmd = ["df -k %s" % rootfs]
+                        usage = subprocess.check_output(cmd, shell=True).split('\n')[1].split()
+                        result = {'total': int(usage[1])/1024,
+                                'used': int(usage[2])/1024,
+                                'free': int(usage[3])/1024,
+                                'percent': usage[4]}
             except Exception as e:
                 pass
     # Format size
