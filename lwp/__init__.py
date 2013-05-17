@@ -499,7 +499,7 @@ def get_fake_filesystem_usage(container):
         'used': 1,
         'free': 1,
         'unit' : 'MB',
-        'percent': '50%'
+        'percent': '50'
     }
     return result
 
@@ -512,18 +512,17 @@ def get_filesystem_usage(container):
         'total': 0,
         'used': 0,
         'free': 0,
-        'unit' : 'MB',
-        'percent': '0%'
+        'percent': '0'
     }
     if container not in stopped():
-        cmd = ["lxc-attach --name %s -- df -k /" % container]
+        cmd = ["lxc-attach --name %s -- df -h /" % container]
         done = False
         try:
             usage = subprocess.check_output(cmd, shell=True).split('\n')[1].split()
-            result = {'total': int(usage[1])/1024,
-                    'used': int(usage[2])/1024,
-                    'free': int(usage[3])/1024,
-                    'percent': usage[4]}
+            result = {'total': usage[1],
+                    'used': usage[2],
+                    'free': usage[3],
+                    'percent': usage[4].strip('%')}
             done = True
         except Exception as e:
             pass
@@ -548,22 +547,13 @@ def get_filesystem_usage(container):
                         result.update( fs.get_usage(rootfs) )
                     else:
                         # Simulate lxc-attach is rootfs is directory
-                        cmd = ["df -k %s" % rootfs]
+                        cmd = ["df -h %s" % rootfs]
                         usage = subprocess.check_output(cmd, shell=True).split('\n')[1].split()
-                        result = {'total': int(usage[1])/1024,
-                                'used': int(usage[2])/1024,
-                                'free': int(usage[3])/1024,
-                                'percent': usage[4]}
+                        result = {'total': usage[1],
+                                'used': usage[2],
+                                'free': usage[3],
+                                'percent': usage[4].strip('%')}
             except Exception as e:
                 pass
-    # Format size
-    for unit in ("GB", "TB"):
-        if result['used'] > 1000:
-            result["used"] /= 1024
-            result["total"] /= 1024
-            result["free"] /= 1024
-            result["unit"] = unit
-        else:
-            break
 
     return result
