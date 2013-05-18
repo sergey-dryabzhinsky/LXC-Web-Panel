@@ -1,7 +1,7 @@
 ## Version 0.2 beta
 ## 2013-04-30
 
-
++ Instant push memory and CPU options to cgroup values
 + Added partition option in the config file, you can choose which partition you want to monitor in the overview
 + If there is no container, the panel will display the modal "Create CT"
 + Added clone CT feature

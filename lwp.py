@@ -24,6 +24,7 @@ PORT = int(config.get('global', 'port'))
 
 # Flask app
 app = Flask(__name__)
+app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 app.config.from_object(__name__)
 
 
@@ -133,7 +134,7 @@ def edit(container=None):
                 lwp.push_config_value('lxc.network.type', form['type'], container=container)
                 flash(u'Link type updated for %s!' % container, 'success')
 
-            if form['link'] != cfg['link'] and re.match('^\w+$', form['link']):
+            if form['link'] != cfg['link'] and re.match('^[a-zA-Z0-9_-]$', form['link']):
                 lwp.push_config_value('lxc.network.link', form['link'], container=container)
                 flash(u'Link name updated for %s!' % container, 'success')
 
@@ -151,6 +152,8 @@ def edit(container=None):
 
                 if form['memlimit'] != cfg['memlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.limit_in_bytes', form['memlimit'], container=container)
+                    if info["state"].lower() != 'stopped':
+                        lxc.cgroup(container, 'lxc.cgroup.memory.limit_in_bytes', form['memlimit'])
                     flash(u'Memory limit updated for %s!' % container, 'success')
 
             if form['swlimit'] != cfg['swlimit'] and form['swlimit'].isdigit() and int(form['swlimit']) <= int(host_memory['total'] * 2):
@@ -165,16 +168,20 @@ def edit(container=None):
 
                 elif form['swlimit'] != cfg['swlimit'] and form['memlimit'] <= form['swlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'], container=container)
+                    if info["state"].lower() != 'stopped':
+                        lxc.cgroup(container, 'lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'])
                     flash(u'Swap limit updated for %s!' % container, 'success')
-
-                
 
             if ( not form['cpus'] and form['cpus'] != cfg['cpus'] ) or ( form['cpus'] != cfg['cpus'] and re.match('^[0-9,-]+$', form['cpus']) ):
                 lwp.push_config_value('lxc.cgroup.cpuset.cpus', form['cpus'], container=container)
+                if info["state"].lower() != 'stopped':
+                        lxc.cgroup(container, 'lxc.cgroup.cpuset.cpus', form['cpus'])
                 flash(u'CPUs updated for %s!' % container, 'success')
 
             if ( not form['shares'] and form['shares'] != cfg['shares'] ) or ( form['shares'] != cfg['shares'] and re.match('^[0-9]+$', form['shares']) ):
                 lwp.push_config_value('lxc.cgroup.cpu.shares', form['shares'], container=container)
+                if info["state"].lower() != 'stopped':
+                        lxc.cgroup(container, 'lxc.cgroup.cpu.shares', form['shares'])
                 flash(u'CPU shares updated for %s!' % container, 'success')
 
             if form['rootfs'] != cfg['rootfs'] and re.match('^[a-zA-Z0-9_/\-]+', form['rootfs']):
@@ -216,43 +223,61 @@ def lxc_net():
 
         if request.method == 'POST':
             if lxc.running() == []:
-                try:
-                    if request.form['status'] == 'Enable':
-                        lwp.push_net_value('USE_LXC_BRIDGE', 'true')
-                        if lwp.net_restart() == 0:
-                            flash(u'LXC Networking enabled successfully!', 'success')
-                        else:
-                            flash(u'Failed to restart LXC networking.', 'error')
-                    elif request.form['status'] == 'Disable':
-                        lwp.push_net_value('USE_LXC_BRIDGE', 'false')
-                        if lwp.net_restart() == 0:
-                            flash(u'LXC Networking disabled successfully!', 'success')
-                        else:
-                            flash(u'Failed to restart LXC networking.', 'error')
-                except KeyError:
-                    cfg = lwp.get_net_settings()
-                    ip_regex = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
-                    if request.form['bridge'] != cfg['bridge'] and re.match('^\w+$', request.form['bridge']):
-                        lwp.push_net_value('LXC_BRIDGE', request.form['bridge'])
+                cfg = lwp.get_net_settings()
+                ip_regex = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
 
-                    if request.form['address'] != cfg['address'] and re.match('^%s$' % ip_regex, request.form['address']):
-                        lwp.push_net_value('LXC_ADDR', request.form['address'])
+                form = {}
+                try: form['use'] = request.form['use']
+                except KeyError: form['use'] = 'false'
 
-                    if request.form['netmask'] != cfg['netmask'] and re.match('^%s$' % ip_regex, request.form['netmask']):
-                        lwp.push_net_value('LXC_NETMASK', request.form['netmask'])
+                try: form['bridge'] = request.form['bridge']
+                except KeyError: form['bridge'] = None
 
-                    if request.form['network'] != cfg['network'] and re.match('^%s(?:/\d{1,2}|)$' % ip_regex, request.form['network']):
-                        lwp.push_net_value('LXC_NETWORK', request.form['network'])
+                try: form['address'] = request.form['address']
+                except KeyError: form['address'] = None
 
-                    if request.form['range'] != cfg['range'] and re.match('^%s,%s$' % (ip_regex, ip_regex), request.form['range']):
-                        lwp.push_net_value('LXC_DHCP_RANGE', request.form['range'])
+                try: form['netmask'] = request.form['netmask']
+                except KeyError: form['netmask'] = None
 
-                    if request.form['max'] != cfg['max'] and re.match('^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', request.form['max']):
-                        lwp.push_net_value('LXC_DHCP_MAX', request.form['max'])
-                    if lwp.net_restart() == 0:
-                        flash(u'LXC Network settings applied successfully!', 'success')
-                    else:
-                        flash(u'Failed to restart LXC networking.', 'error')
+                try: form['network'] = request.form['network']
+                except KeyError: form['network'] = None
+
+                try: form['range'] = request.form['range']
+                except KeyError: form['range'] = None
+
+                try: form['max'] = request.form['max']
+                except KeyError: form['max'] = None
+
+
+                if form['use'] == 'true' and form['use'] != cfg['use']:
+                    lwp.push_net_value('USE_LXC_BRIDGE', 'true')
+
+                elif form['use'] == 'false' and form['use'] != cfg['use']:
+                    lwp.push_net_value('USE_LXC_BRIDGE', 'false')
+
+                if form['bridge'] and form['bridge'] != cfg['bridge'] and re.match('^[a-zA-Z0-9_-]$', form['bridge']):
+                    lwp.push_net_value('LXC_BRIDGE', form['bridge'])
+
+                if form['address'] and form['address'] != cfg['address'] and re.match('^%s$' % ip_regex, form['address']):
+                    lwp.push_net_value('LXC_ADDR', form['address'])
+
+                if form['netmask'] and form['netmask'] != cfg['netmask'] and re.match('^%s$' % ip_regex, form['netmask']):
+                    lwp.push_net_value('LXC_NETMASK', form['netmask'])
+
+                if form['network'] and form['network'] != cfg['network'] and re.match('^%s(?:/\d{1,2}|)$' % ip_regex, form['network']):
+                    lwp.push_net_value('LXC_NETWORK', form['network'])
+
+                if form['range'] and form['range'] != cfg['range'] and re.match('^%s,%s$' % (ip_regex, ip_regex), form['range']):
+                    lwp.push_net_value('LXC_DHCP_RANGE', form['range'])
+
+                if form['max'] and form['max'] != cfg['max'] and re.match('^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', form['max']):
+                    lwp.push_net_value('LXC_DHCP_MAX', form['max'])
+
+
+                if lwp.net_restart() == 0:
+                    flash(u'LXC Network settings applied successfully!', 'success')
+                else:
+                    flash(u'Failed to restart LXC networking.', 'error')
             else:
                 flash(u'Stop all containers before restart lxc-net.', 'warning')
         return render_template('lxc-net.html', containers=lxc.ls(), cfg=lwp.get_net_settings(), running=lxc.running())

@@ -185,3 +185,7 @@ def checkconfig():
     out = _run('lxc-checkconfig', output=True)
     if out: return out.replace('[1;32m', '').replace('[1;33m', '').replace('[0;39m', '').replace('[1;32m', '').replace('\x1b', '').replace(': ', ':').split('\n')
     return out
+
+def cgroup(container, key, value):
+    if not exists(container): raise ContainerDoesntExists('Container {} does not exist!'.format(container))
+    return _run('lxc-cgroup -n {} {} {}'.format(container, key, value))
