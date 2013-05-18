@@ -18,28 +18,29 @@
 				<div class="control-group">
 					<label class="control-label" for="inputHostname">Hostname</label>
 					<div class="controls">
-						<input pattern="(?!^containers$)([a-z0-9-]{1,63})|([a-z0-9-\.]{1,63}\.[a-z0-9-\.]{1,63}\.[a-z0-9\.]{1,6})" type="text" id="inputHostname" name="hostname" value="{{ settings.utsname }}">
+						<input pattern="(?!^containers$)|^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$" type="text" id="inputHostname" name="hostname" value="{{ settings.utsname }}">
 					</div>
 				</div>
-
-				<!-- <div class="control-group">
-					<div class="controls">
-						<label class="checkbox">
-							<input type="checkbox" name"boot" value="True"> Start at boot
-						</label>
-					</div>
-				</div> -->
 
 				<hr>
 
 				<div class="control-group">
-					<label class="control-label" for="inputFlags">Network flag</label>
+					<label class="control-label" for="inputAutostart">Start at boot</label>
 					<div class="controls">
-						<div id="inputFlags" class="btn-group" data-toggle="buttons-radio">
-							<button type="button" id="flagUp" value="up" class="btn btn-success{% if settings.flags == 'up'%} active{% endif %}">Up</button>
-							<button type="button" id="flagDown" value="down" class="btn btn-danger{% if settings.flags == 'down'%} active{% endif %}">Down</button>
+						<div class="switch" data-on-label="<i class='icon-ok icon-white'></i>" data-off-label="<i class='icon-remove icon-white'></i>" data-on="success" data-off="danger">
+							<input type="checkbox" name="autostart" value="True" {% if settings.auto %}checked {% endif %}/>
 						</div>
-						<input type="hidden" name="flags" id="flags" value="{{ settings.flags }}" />
+					</div>
+				</div>
+
+				<hr>
+
+				<div class="control-group switch-network-flags">
+					<label class="control-label" for="inputNetworkFlags">Network flag</label>
+					<div class="controls">
+						<div class="switch" data-on-label="Up" data-off-label="Down" data-on="success" data-off="danger">
+							<input type="checkbox" id="inputNetworkFlags" name="flags" value="{{ settings.flags }}"{% if settings.flags == 'up'%} checked{% endif %}/>
+						</div>
 					</div>
 				</div>
 				
@@ -75,19 +76,19 @@
 
 				<hr>
 
-				<div class="control-group">
-					<label class="control-label" for="inputMemlimit">Memory limit *</label>
+				<div class="control-group form-inline">
+					<label class="control-label" for="sliderMemlimit">Memory limit *</label>
 					<div class="controls">
-						<input pattern="[0-9]+" type="range" id="inputMemlimit" name="memlimit" min="16" max="{{ host_memory.total }}" step="2" value="{% if settings.memlimit %}{{ settings.memlimit }}{% else %}{{ host_memory.total }}{% endif %}" onChange="updateMem('Memlimit', this.value);">
-						<span class="help-inline" id="Memlimit">{% if settings.memlimit %}{{ settings.memlimit }} MB{% else %}Unlimited{% endif %}</span>
+						<input class="fix-height" pattern="[0-9]+" type="range" id="sliderMemlimit" name="memlimit" min="16" max="{{ host_memory.total }}" step="2" value="{% if settings.memlimit %}{{ settings.memlimit }}{% else %}{{ host_memory.total }}{% endif %}" onChange="updateMemInput('inputMemlimit', this.value, {{ host_memory.total }});">		
+						<input pattern="[0-9]+" class="input-mini{% if not settings.memlimit %} hide{% endif %}" id="inputMemlimit" type="number" min="16" step="2" max="{{ host_memory.total }}" value="{% if settings.memlimit %}{{ settings.memlimit }}{% endif %}" onChange="updateMemSlider('sliderMemlimit', this.value);"><span class="help-inline fix-height">{% if settings.memlimit %}MB{% else %}Unlimited{% endif %}</span>
 					</div>
 				</div>
 
 				<div class="control-group">
-					<label class="control-label" for="inputSwlimit">Memory + Swap limit *</label>
+					<label class="control-label" for="sliderSwlimit">Swap limit *</label>
 					<div class="controls">
-						<input pattern="[0-9]+" type="range" id="inputSwlimit" name="swlimit" min="32" max="{{ host_memory.total * 2 }}" step="2" value="{% if settings.swlimit %}{{ settings.swlimit }}{% else %}{{ host_memory.total * 2 }}{% endif %}" onChange="updateSw('Swlimit', this.value);">
-						<span class="help-inline" id="Swlimit">{% if settings.swlimit %}{{ settings.swlimit }} MB{% else %}Unlimited{% endif %}</span>
+						<input class="fix-height" pattern="[0-9]+" type="range" id="sliderSwlimit" name="swlimit" min="32" max="{{ host_memory.total * 2 }}" step="2" value="{% if settings.swlimit %}{{ settings.swlimit }}{% else %}{{ host_memory.total * 2 }}{% endif %}" onChange="updateMemInput('inputSwlimit', this.value, {{ host_memory.total * 2 }});">
+						<input pattern="[0-9]+" class="input-mini{% if not settings.swlimit %} hide{% endif %}" id="inputSwlimit" type="number" min="32" step="2" max="{{ host_memory.total *2 }}" value="{% if settings.swlimit %}{{ settings.swlimit }}{% endif %}" onChange="updateMemSlider('sliderSwlimit', this.value);"><span class="help-inline fix-height">{% if settings.swlimit %}MB{% else %}Unlimited{% endif %}</span>
 					</div>
 				</div>
 
@@ -111,7 +112,7 @@
 				<div class="control-group">
 					<label class="control-label" for="inputRootfs">Root FS</label>
 					<div class="controls">
-						<input pattern="[a-zA-Z0-9_/\-]+" type="text" id="inputRootfs" name="rootfs" value="{{ settings.rootfs }}" placeholder="Undefined (LVM or BTRFS)">
+						<input pattern="[a-zA-Z0-9_/\-]+" type="text" id="inputRootfs" name="rootfs" value="{{ settings.rootfs }}">
 						<span class="help-inline"><small>(e.g /var/lib/lxc/{{container}}/rootfs)</small></span>
 					</div>
 				</div>
@@ -145,52 +146,51 @@
 {%- endmacro %}
 
 {% block script %}
+		<script src="/static/js/bootstrapSwitch.js"></script>
 		<script type="text/javascript">
-			{% if infos['status'] != 'STOPPED' %}function memory_color(value){
-				if(value != 0)
-					if ('0' <= value && value <= '512') return 'success';
-					else if ('512' <= value && value < '1024') return 'warning';
-					else return 'important';
-			}
+			{% if infos['status'] != 'STOPPED' %}
+				function memory_color(value){
+					if(value != 0)
+						if ('0' <= value && value <= '512') return 'success';
+						else if ('512' <= value && value < '1024') return 'warning';
+						else return 'important';
+				}
 
-			function refreshMemory(container){
-				$.getJSON($SCRIPT_ROOT + '/_refresh_memory_' + container, function(data) {
-					var el = $('#'+container+' span');
-					el.text(data.memusg+' MB');
-					el[0].className = el[0].className.replace(/label\-(success|warning|important)/g,'label-'+memory_color(data.memusg));
-				});
-			}
+				function refreshMemory(container){
+					$.getJSON($SCRIPT_ROOT + '/_refresh_memory_' + container, function(data) {
+						var el = $('#'+container+' span');
+						el.text(data.memusg+' MB');
+						el[0].className = el[0].className.replace(/label\-(success|warning|important)/g,'label-'+memory_color(data.memusg));
+					});
+				}
 
-			window.setInterval('refreshMemory("{{ container }}")', 5000);
+				window.setInterval('refreshMemory("{{ container }}")', 5000);
 			{% endif %}
 
-			$("#flagDown").on('click',function(){
-				$("#network").slideUp()
-				$("#flags").val('down');
+			// Network flags
+			var network = $("#network");
+			$(".switch-network-flags").on('switch-change', function(e, data){
+				if(data.value){
+					$(data.el).val('up');
+					network.delay(350).slideDown();
+				}
+				else{
+					$(data.el).val('down');
+					network.delay(350).slideUp();
+				}
 			});
 
-			$("#flagUp").on('click',function(){
-				$("#network").slideDown()
-				$("#flags").val('up');
-			});
-		</script>
-		<script type="text/javascript">
-			function updateMem(elem, value){
-				if (value < {{ host_memory.total }}) {
-					$('#' + elem).text(value + ' MB');
+			function updateMemInput(elem, value, mem_total){
+				if (value < mem_total) {
+					$('#' + elem).val(value).show().next('.help-inline').text('MB');
 				}
 				else {
-					$('#' + elem).text('Unlimited');
+					$('#' + elem).val(mem_total).hide().next('.help-inline').text('Unlimited');
 				}
 			};
 
-			function updateSw(elem, value){
-				if (value < {{ host_memory.total * 2 }}) {
-					$('#' + elem).text(value + ' MB'); 
-				}
-				else {
-					$('#' + elem).text('Unlimited');
-				}
+			function updateMemSlider(elem, value){
+				$('#' + elem).val(value);
 			};
 		</script>
 {% endblock %}
