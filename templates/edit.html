@@ -200,7 +200,7 @@
 
                 function refreshDisk(container){
                     $.getJSON($SCRIPT_ROOT + '/_refresh_disk_'+container, function(data) {
-                        var el = $('#disk_'+data.name+' span');
+                        var el = $('#disk_'+container+' span');
                         el.text(data.diskusg.used);
                         el[0].className = el[0].className.replace(
                                 /label\-(success|warning|important)/g,
