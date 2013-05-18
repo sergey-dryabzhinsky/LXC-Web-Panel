@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../')
-from lxclite import exists, stopped, ContainerDoesntExists
+from lxclite import exists, stopped, ContainerDoesntExists, cgroup
 import subprocess
 import os
 import platform
@@ -11,23 +11,6 @@ import re
 
 class CalledProcessError(Exception):
     pass
-
-cgroup = {}
-cgroup['type'] = 'lxc.network.type'
-cgroup['link'] = 'lxc.network.link'
-cgroup['flags'] = 'lxc.network.flags'
-cgroup['hwaddr'] = 'lxc.network.hwaddr'
-cgroup['rootfs'] = 'lxc.rootfs'
-cgroup['utsname'] = 'lxc.utsname'
-cgroup['arch'] = 'lxc.arch'
-cgroup['ipv4'] = 'lxc.network.ipv4'
-cgroup['memlimit'] = 'lxc.cgroup.memory.limit_in_bytes'
-cgroup['swlimit'] = 'lxc.cgroup.memory.memsw.limit_in_bytes'
-cgroup['cpus'] = 'lxc.cgroup.cpuset.cpus'
-cgroup['shares'] = 'lxc.cgroup.cpu.shares'
-cgroup['deny'] = 'lxc.cgroup.devices.deny'
-cgroup['allow'] = 'lxc.cgroup.devices.allow'
-
 
 class FakeSection(object):
 
