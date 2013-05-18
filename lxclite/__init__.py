@@ -80,7 +80,9 @@ def push_cgroup_value(container, key, value):
     if not exists(container): raise ContainerDoesntExists('Container {} does not exist!'.format(container))
 
     if key == cgroup['memlimit'] or key == cgroup['swlimit'] and value != False:
-        value = '%sM' % value
+        value = int(value)*1024*1024
+
+    key = key.replace('lxc.cgroup.', '')
 
     command = 'lxc-cgroup -n {}'.format(container)
     command += ' {}'.format(key)
