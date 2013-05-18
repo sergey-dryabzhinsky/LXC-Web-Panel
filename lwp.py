@@ -189,15 +189,15 @@ def edit(container=None):
                 flash(u'Rootfs updated!' % container, 'success')
 
             auto = lwp.ls_auto()
-            if form['autostart'] == 'True' and not container in auto:
+            if form['autostart'] == 'True' and not (container+'.conf') in auto:
                 try:
-                    os.symlink('/var/lib/lxc/%s/config' % container, '/etc/lxc/auto/%s' % container)
+                    os.symlink('/var/lib/lxc/%s/config' % container, '/etc/lxc/auto/%s.conf' % container)
                     flash(u'Autostart enabled for %s' % container, 'success')
                 except OSError:
-                    flash(u'Unable to create symlink \'/etc/lxc/auto/%s\'' % container, 'error')
+                    flash(u'Unable to create symlink \'/etc/lxc/auto/%s.conf\'' % container, 'error')
             elif not form['autostart'] and container in auto:
                 try:
-                    os.remove('/etc/lxc/auto/%s' % container)
+                    os.remove('/etc/lxc/auto/%s.conf' % container)
                     flash(u'Autostart disabled for %s' % container, 'success')
                 except OSError:
                     flash(u'Unable to remove symlink', 'error')
