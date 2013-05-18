@@ -143,7 +143,9 @@
                 <li><strong>Pid :</strong> {{ infos.pid }}</li>
 				<li><strong>Network :</strong> {% if settings.flags == 'up' %}<span class="label label-success">Up</span>{% else %}<span class="label label-important">Down</span>{% endif %}</li>
 				{% if infos.memusg %}<li id="{{ container }}"><strong>Mem. usage :</strong> {{ render_memory_wrapper(infos.memusg, infos.max_memusg) }}</li>{% endif %}
-				{% if infos.diskusg.total %}<li id="disk_{{ container }}"><strong>Disk usage :</strong> {{ render_disk_wrapper(infos.diskusg.used, infos.diskusg.total, infos.diskusg.unit, infos.diskusg.percent) }}</li>{% endif %}
+				{% if infos.diskusg.total %}<li id="disk_{{ container }}">
+                    <strong>Disk usage :</strong> <span class="label label-success">updating...</span>
+                    </li>{% endif %}
                 {% endif %}
 				<li><strong>Arch :</strong> {{ settings.arch }}</li>
 			</ul>
@@ -153,10 +155,6 @@
 {% macro memory_color(value, max) -%}{% if value != 0 %}{% if 0 <= value < max*0.8 %}success{% elif max*0.8 <= value < max*0.9 %}warning{% else %}important{% endif %}{% endif %}{%- endmacro %}
 {% macro render_memory_wrapper(value, max) -%}
 	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} MB</span>{% endif %}
-{%- endmacro %}
-
-{% macro render_disk_wrapper(value, max, unit, percent) -%}
-	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} {{ unit }} ({{ percent }})</span>{% endif %}
 {%- endmacro %}
 
 {% block script %}
@@ -170,6 +168,19 @@
                             return 'success';
                         // 90% - not ok
                         else if (max_value*0.8 <= value && value < max_value*0.9)
+                            return 'warning';
+                        else
+                            return 'important';
+                    }
+                }
+
+                function percent_color(value){
+                    if(value != 0) {
+                        // 80% - ok
+                        if ('0' <= value && value < 80)
+                            return 'success';
+                        // 90% - not ok
+                        else if (80 <= value && value < 90)
                             return 'warning';
                         else
                             return 'important';
@@ -190,10 +201,10 @@
                 function refreshDisk(container){
                     $.getJSON($SCRIPT_ROOT + '/_refresh_disk_'+container, function(data) {
                         var el = $('#disk_'+data.name+' span');
-                        el.text(data.diskusg.used+' '+data.diskusg.unit);
+                        el.text(data.diskusg.used);
                         el[0].className = el[0].className.replace(
                                 /label\-(success|warning|important)/g,
-                                'label-'+memory_color(data.diskusg.used, data.diskusg.total));
+                                'label-'+percent_color(data.diskusg.percent));
                     });
                 }
 
