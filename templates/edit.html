@@ -239,8 +239,8 @@
 
             function updateMemInput(elem, value, mem_total){
                 if (value < mem_total) {
-                    $('#' + elem).val(value).show().next('.help-inline').text('MB');				}
-				else {
+                    $('#' + elem).val(value).show().next('.help-inline').text('MB');
+                } else {
 					$('#' + elem).val(mem_total).hide().next('.help-inline').text('Unlimited');
 				}
 			}
