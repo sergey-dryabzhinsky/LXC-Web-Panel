@@ -21,6 +21,22 @@ import os
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+cgroup = {}
+cgroup['type'] = 'lxc.network.type'
+cgroup['link'] = 'lxc.network.link'
+cgroup['flags'] = 'lxc.network.flags'
+cgroup['hwaddr'] = 'lxc.network.hwaddr'
+cgroup['rootfs'] = 'lxc.rootfs'
+cgroup['utsname'] = 'lxc.utsname'
+cgroup['arch'] = 'lxc.arch'
+cgroup['ipv4'] = 'lxc.network.ipv4'
+cgroup['memlimit'] = 'lxc.cgroup.memory.limit_in_bytes'
+cgroup['swlimit'] = 'lxc.cgroup.memory.memsw.limit_in_bytes'
+cgroup['cpus'] = 'lxc.cgroup.cpuset.cpus'
+cgroup['shares'] = 'lxc.cgroup.cpu.shares'
+cgroup['deny'] = 'lxc.cgroup.devices.deny'
+cgroup['allow'] = 'lxc.cgroup.devices.allow'
+
 def _run(cmd, output=False):
     '''
     To run command easier
@@ -62,6 +78,9 @@ def create(container, template='ubuntu', storage=None, xargs=None):
 
 def push_cgroup_value(container, key, value):
     if not exists(container): raise ContainerDoesntExists('Container {} does not exist!'.format(container))
+
+    if key == cgroup['memlimit'] or key == cgroup['swlimit'] and value != False:
+        value = '%sM' % value
 
     command = 'lxc-cgroup -n {}'.format(container)
     command += ' {}'.format(key)
