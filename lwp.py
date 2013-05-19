@@ -197,7 +197,7 @@ def edit(container=None):
                     flash(u'Unable to create symlink \'/etc/lxc/auto/%s.conf\'' % container, 'error')
             elif not form['autostart'] and ('%s.conf' % container) in auto:
                 try:
-                    os.remove('/etc/lxc/auto/%s' % container)
+                    os.remove('/etc/lxc/auto/%s.conf' % container)
                     flash(u'Autostart disabled for %s' % container, 'success')
                 except OSError:
                     flash(u'Unable to remove symlink', 'error')
@@ -535,70 +535,70 @@ def create_container():
     return render_template('login.html')
 
 
-@app.route('/action/clone-container', methods=['GET', 'POST'])
-def clone_container():
-    '''
-    verify all forms to clone a container
-    '''
-    if 'logged_in' in session:
-        if session['su'] != 'Yes':
-            return abort(403)
-        if request.method == 'POST':
-            name = request.form['name']
-            command = request.form['command']
-            if re.match('^(?!^containers$)|[a-zA-Z0-9_-]+$', name):
-                storage_method = request.form['backingstore']
-                if storage_method == 'default':
-                    try:
-                        if lxc.clone(orig=name, new=None) == 0:
-                            flash(u'Container %s created successfully!' % name, 'success')
-                        else:
-                            flash(u'Failed to create %s!' % name, 'error')
-                    except lxc.ContainerAlreadyExists:
-                        flash(u'The Container %s is already created!' % name, 'error')
-                elif storage_method == 'directory':
-                    directory = request.form['dir']
-                    if re.match('^/[a-zA-Z0-9_/-]+$', directory) and directory != '':
-                        try:
-                            if lxc.create(name, template=template, backing_store='dir --dir %s' % directory, xargs=command) == 0:
-                                flash(u'Container %s created successfully!' % name, 'success')
-                            else:
-                                flash(u'Failed to create %s!' % name, 'error')
-                        except lxc.ContainerAlreadyExists:
-                            flash(u'The Container %s is already created!' % name, 'error')
-                elif storage_method == 'lvm':
-                    lvname = request.form['lvname']
-                    vgname = request.form['vgname']
-                    fstype = request.form['fstype']
-                    fssize = request.form['fssize']
-                    storage_options = 'lvm'
+# @app.route('/action/clone-container', methods=['GET', 'POST'])
+# def clone_container():
+#     '''
+#     verify all forms to clone a container
+#     '''
+#     if 'logged_in' in session:
+#         if session['su'] != 'Yes':
+#             return abort(403)
+#         if request.method == 'POST':
+#             name = request.form['name']
+#             command = request.form['command']
+#             if re.match('^(?!^containers$)|[a-zA-Z0-9_-]+$', name):
+#                 storage_method = request.form['backingstore']
+#                 if storage_method == 'default':
+#                     try:
+#                         if lxc.clone(orig=name, new=None) == 0:
+#                             flash(u'Container %s created successfully!' % name, 'success')
+#                         else:
+#                             flash(u'Failed to create %s!' % name, 'error')
+#                     except lxc.ContainerAlreadyExists:
+#                         flash(u'The Container %s is already created!' % name, 'error')
+#                 elif storage_method == 'directory':
+#                     directory = request.form['dir']
+#                     if re.match('^/[a-zA-Z0-9_/-]+$', directory) and directory != '':
+#                         try:
+#                             if lxc.create(name, template=template, backing_store='dir --dir %s' % directory, xargs=command) == 0:
+#                                 flash(u'Container %s created successfully!' % name, 'success')
+#                             else:
+#                                 flash(u'Failed to create %s!' % name, 'error')
+#                         except lxc.ContainerAlreadyExists:
+#                             flash(u'The Container %s is already created!' % name, 'error')
+#                 elif storage_method == 'lvm':
+#                     lvname = request.form['lvname']
+#                     vgname = request.form['vgname']
+#                     fstype = request.form['fstype']
+#                     fssize = request.form['fssize']
+#                     storage_options = 'lvm'
 
-                    if re.match('^[a-zA-Z0-9_-]+$', lvname) and lvname != '':
-                        storage_options += ' --lvname %s' % lvname
-                    if re.match('^[a-zA-Z0-9_-]+$', vgname) and vgname != '':
-                        storage_options += ' --vgname %s' % vgname
-                    if re.match('^[a-z0-9]+$', fstype) and fstype != '':
-                        storage_options += ' --fstype %s' % fstype
-                    if re.match('^[0-9][G|M]$', fssize) and fssize != '':
-                        storage_options += ' --fssize %s' % fssize
+#                     if re.match('^[a-zA-Z0-9_-]+$', lvname) and lvname != '':
+#                         storage_options += ' --lvname %s' % lvname
+#                     if re.match('^[a-zA-Z0-9_-]+$', vgname) and vgname != '':
+#                         storage_options += ' --vgname %s' % vgname
+#                     if re.match('^[a-z0-9]+$', fstype) and fstype != '':
+#                         storage_options += ' --fstype %s' % fstype
+#                     if re.match('^[0-9][G|M]$', fssize) and fssize != '':
+#                         storage_options += ' --fssize %s' % fssize
 
-                    try:
-                        if lxc.create(name, template=template, backing_store=storage_options, xargs=command) == 0:
-                            flash(u'Container %s created successfully!' % name, 'success')
-                        else:
-                            flash(u'Failed to create %s!' % name, 'error')
-                    except lxc.ContainerAlreadyExists:
-                        flash(u'The container/logical volume %s is already created!' % name, 'error')
-                else:
-                    flash(u'Missing parameters to create container!', 'error')
-            else:
-                if name == '':
-                    flash(u'Please enter a container name!', 'error')
-                else:
-                    flash(u'Invalid name for \"%s\"!' % name, 'error')
+#                     try:
+#                         if lxc.create(name, template=template, backing_store=storage_options, xargs=command) == 0:
+#                             flash(u'Container %s created successfully!' % name, 'success')
+#                         else:
+#                             flash(u'Failed to create %s!' % name, 'error')
+#                     except lxc.ContainerAlreadyExists:
+#                         flash(u'The container/logical volume %s is already created!' % name, 'error')
+#                 else:
+#                     flash(u'Missing parameters to create container!', 'error')
+#             else:
+#                 if name == '':
+#                     flash(u'Please enter a container name!', 'error')
+#                 else:
+#                     flash(u'Invalid name for \"%s\"!' % name, 'error')
 
-        return redirect(url_for('home'))
-    return render_template('login.html')
+#         return redirect(url_for('home'))
+#     return render_template('login.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
