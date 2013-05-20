@@ -134,7 +134,7 @@ def edit(container=None):
                 lwp.push_config_value('lxc.network.type', form['type'], container=container)
                 flash(u'Link type updated for %s!' % container, 'success')
 
-            if form['link'] != cfg['link'] and re.match('^[a-zA-Z0-9_-]$', form['link']):
+            if form['link'] != cfg['link'] and re.match('^[a-zA-Z0-9_-]+$', form['link']):
                 lwp.push_config_value('lxc.network.link', form['link'], container=container)
                 flash(u'Link name updated for %s!' % container, 'success')
 
@@ -255,7 +255,7 @@ def lxc_net():
                 elif form['use'] == 'false' and form['use'] != cfg['use']:
                     lwp.push_net_value('USE_LXC_BRIDGE', 'false')
 
-                if form['bridge'] and form['bridge'] != cfg['bridge'] and re.match('^[a-zA-Z0-9_-]$', form['bridge']):
+                if form['bridge'] and form['bridge'] != cfg['bridge'] and re.match('^[a-zA-Z0-9_-]+$', form['bridge']):
                     lwp.push_net_value('LXC_BRIDGE', form['bridge'])
 
                 if form['address'] and form['address'] != cfg['address'] and re.match('^%s$' % ip_regex, form['address']):
