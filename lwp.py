@@ -495,6 +495,8 @@ def create_container():
                             flash(u'Failed to create %s!' % name, 'error')
                     except lxc.ContainerAlreadyExists:
                         flash(u'The Container %s is already created!' % name, 'error')
+                    except subprocess.CalledProcessError:
+                        flash(u'Error!' % name, 'error')
 
                 elif storage_method == 'directory':
                     directory = request.form['dir']
@@ -507,6 +509,8 @@ def create_container():
                                 flash(u'Failed to create %s!' % name, 'error')
                         except lxc.ContainerAlreadyExists:
                             flash(u'The Container %s is already created!' % name, 'error')
+                        except subprocess.CalledProcessError:
+                            flash(u'Error!' % name, 'error')
 
                 elif storage_method == 'lvm':
                     lvname = request.form['lvname']
@@ -531,6 +535,8 @@ def create_container():
                             flash(u'Failed to create %s!' % name, 'error')
                     except lxc.ContainerAlreadyExists:
                         flash(u'The container/logical volume %s is already created!' % name, 'error')
+                    except subprocess.CalledProcessError:
+                        flash(u'Error!' % name, 'error')
 
                 else:
                     flash(u'Missing parameters to create container!', 'error')
