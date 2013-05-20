@@ -66,7 +66,7 @@ def home():
 
         for status in ['RUNNING', 'FROZEN', 'STOPPED']:
             containers_by_status = []
-            print status
+
             for container in listx[status]:
                 containers_by_status.append({
                     'name': container,
