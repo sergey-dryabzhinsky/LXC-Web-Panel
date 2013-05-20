@@ -101,6 +101,7 @@ def edit(container=None):
         if request.method == 'POST':
             cfg = lwp.get_container_settings(container)
             ip_regex = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
+            info = lxc.info(container)
 
             form = {}
             form['type'] = request.form['type']
