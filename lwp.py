@@ -63,8 +63,10 @@ def home():
         
         listx = lxc.listx()
         containers_all = []
-        for status in listx:
+
+        for status in ['RUNNING', 'FROZEN', 'STOPPED']:
             containers_by_status = []
+
             for container in listx[status]:
                 containers_by_status.append({
                     'name': container,
@@ -101,6 +103,7 @@ def edit(container=None):
         if request.method == 'POST':
             cfg = lwp.get_container_settings(container)
             ip_regex = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
+            info = lxc.info(container)
 
             form = {}
             form['type'] = request.form['type']
@@ -492,6 +495,8 @@ def create_container():
                             flash(u'Failed to create %s!' % name, 'error')
                     except lxc.ContainerAlreadyExists:
                         flash(u'The Container %s is already created!' % name, 'error')
+                    except subprocess.CalledProcessError:
+                        flash(u'Error!' % name, 'error')
 
                 elif storage_method == 'directory':
                     directory = request.form['dir']
@@ -504,6 +509,8 @@ def create_container():
                                 flash(u'Failed to create %s!' % name, 'error')
                         except lxc.ContainerAlreadyExists:
                             flash(u'The Container %s is already created!' % name, 'error')
+                        except subprocess.CalledProcessError:
+                            flash(u'Error!' % name, 'error')
 
                 elif storage_method == 'lvm':
                     lvname = request.form['lvname']
@@ -528,6 +535,8 @@ def create_container():
                             flash(u'Failed to create %s!' % name, 'error')
                     except lxc.ContainerAlreadyExists:
                         flash(u'The container/logical volume %s is already created!' % name, 'error')
+                    except subprocess.CalledProcessError:
+                        flash(u'Error!' % name, 'error')
 
                 else:
                     flash(u'Missing parameters to create container!', 'error')
