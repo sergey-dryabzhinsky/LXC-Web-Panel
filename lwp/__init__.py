@@ -304,7 +304,7 @@ def get_container_settings(name):
     except ConfigParser.NoOptionError:
         cfg['shares'] = ''
 
-    if (name+'.conf') in ls_auto():
+    if '%s.conf' % name in ls_auto():
         cfg['auto'] = True
     else:
         cfg['auto'] = False

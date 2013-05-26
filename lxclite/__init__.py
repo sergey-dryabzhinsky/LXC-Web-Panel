@@ -61,7 +61,7 @@ def create(container, template='ubuntu', storage=None, xargs=None):
     return _run(command)
 
 
-def clone(orig=None, new=None, snapshot=False, storage=None):
+def clone(orig=None, new=None, snapshot=False):
     '''
     Clone a container (without all options)
     '''
@@ -70,7 +70,6 @@ def clone(orig=None, new=None, snapshot=False, storage=None):
 
         command = 'lxc-clone -o {} -n {}'.format(orig, new)
         if snapshot: command += ' -s'
-        if storage: command += ' -B {}'.format(storage)
                 
         return _run(command)
 
