@@ -311,7 +311,7 @@ def check_version(url=None):
     f.close()
     if not url:
         url = 'http://lxc-webpanel.github.com/version'
-    latest = float(urllib2.urlopen(url).read())
+    latest = urllib2.urlopen(url).read()
     return {'current': current,
             'latest': latest}
 
