@@ -1,16 +1,16 @@
-{% set td = {'running':'success','frozen':'info','stopped':'important'} %}
-{% set tr = {'running':'success','frozen':'info','stopped':'error'} %}
-{% set disabled = {'running':'success','frozen':'info','stopped':'important'} %}
+{% set td = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
+{% set tr = {'RUNNING':'success','FROZEN':'info','STOPPED':'error'} %}
+{% set disabled = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
 {% extends "layout.html" %}
 {% block title %}Overview{% endblock %}
 {% block content %}
 <div class="span9">
 	{{ super() }}
 	{% if session.su == 'Yes' %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-danger" data-toggle="modal" data-target="#reboot"><i class="icon-off icon-white"></i> Reboot</a></p>
-	{% if containers != [] %}<!--p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-inverse" data-toggle="modal" data-target="#cloneCT"> <i class="icon-repeat icon-white"></i> Clone <abbr title="Container">CT</abbr></a></p-->{% endif %}
+	{% if containers != [] %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-inverse" data-toggle="modal" data-target="#cloneCT"> <i class="icon-repeat icon-white"></i> Clone <abbr title="Container">CT</abbr></a></p{% endif %}
 	<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-success" data-toggle="modal" data-target="#createCT"><i class="icon-plus-sign icon-white"></i> Create <abbr title="Container">CT</abbr></a></p>{% endif %}
 
-	<div class="hero-unit">
+	<div id="host-area" class="hero-unit">
 		{% if dist == 'Unknown' %}<div class="alert alert-error">LXC Web Panel is optimized for Ubuntu 12.10 !</div>{% endif %}
 		<div class="row">
 			<div class="span3" style="margin-left:20px;">
@@ -22,10 +22,11 @@
 				<p>Memory usage : <span id="memory-usage" class="hide"></span></p>
 				<div class="progress" style="width:250px;">
 					<div class="bar" id="memory-usage-bar" style="width: 0%;"></div>
-					<abbr title="Cached memory"><div class="bar bar-success" id="memory-cache-usage-bar" style="width: 0%;"></div></abbr>
+					<abbr title="Cached memory"><span class="bar bar-success" id="memory-cache-usage-bar" style="width: 0%;"></span></abbr>
 				</div>
 			</div>
 			<div class="span3" style="margin-top:29px; margin-left:20px;">
+                <h3>&nbsp;</h3><!-- Vertical align -->
 				<p>Disk usage : <span id="disk-usage" class="hide"></span></p>
 				<div class="progress" style="width:250px;">
 					<div class="bar" id="disk-usage-bar" style="width: 0%;"></div>
@@ -54,7 +55,7 @@
 		</div>
         {% endif %}
 	</div>
-    <table class="table table-bordered">
+    <table id="containers-area" class="table table-bordered">
         <thead>
         </thead>
         <tbody>
@@ -69,6 +70,7 @@
                 <th>Name</th>
                 <th>Hostname</th>
                 <th>IP Address</th>
+                <th>CPU usage</th>
                 <th>Mem. usage</th>
                 <th>Disk usage</th>
                 <th>Actions</th>
@@ -78,6 +80,9 @@
                     <td><a href="{{ url_for('edit',container=container.name) }}" title="Click to edit {{container.name}}">{{container.name}}</a></td>
                     <td>{{container.settings.utsname}}</td>
                     <td>{% if container.settings.flags == 'up' %}{% if container.settings.ipv4 != '' %}{{container.settings.ipv4}}{% else %}Undefined{% endif %}{% elif container.settings.flags == 'down' %}Link Down{% endif %}</td>
+                    <td id="cpu_{{container.name}}">
+                        <span class="label label-success"></span>
+                    </td>
                     <td id="{{container.name}}">{{ render_memory_wrapper(container.memusg, container.max_memusg) }}</td>
                     <td id="disk_{{container.name}}">
                         <span class="label label-success"></span>
@@ -119,46 +124,75 @@
 {% block script %}
 <script src="/static/js/bootstrapSwitch.js"></script>
 <script type="text/javascript">
+
+
+            var updateRunning = 0;
+            function updateIndicatorFadeIn() {
+                if (!updateRunning) {
+    				$('#home-load').fadeIn();
+                }
+                updateRunning++;
+            }
+            function updateIndicatorFadeOut() {
+                if (updateRunning) {
+                    updateRunning--;
+                } else {
+    				$('#home-load').fadeOut();
+                }
+            }
+
+
 			function refreshMemoryHost(){
+                updateIndicatorFadeIn();
 				$.getJSON($SCRIPT_ROOT + '/_refresh_memory_host', function(data) {
 					$('#memory-usage').text(data.used +' / '+ data.total +' MB').fadeIn();
 					$('#memory-usage-bar').css({'width':data.percent+'%'});
 					$('#memory-cache-usage-bar').css({'width':data.percent_cached+'%'});
+                    updateIndicatorFadeOut();
 				});
 			}
 
 			function refreshCPUHost(){
+                updateIndicatorFadeIn();
 				$.get($SCRIPT_ROOT + '/_refresh_cpu_host', function(data) {
 					$('#cpu-usage').text(data +'%').fadeIn();
 					$('#cpu-usage-bar').css({'width':data +'%'});
+                    updateIndicatorFadeOut();
 				});
 			}
 
 			function refreshDiskHost(){
+                updateIndicatorFadeIn();
 				$.getJSON($SCRIPT_ROOT + '/_refresh_disk_host', function(data) {
                     if (!data) return;
 					$('#disk-usage').text(data.used +' ('+ data.free +' free)').fadeIn();
 					$('#disk-usage-bar').css({'width':data.percent});
+                    updateIndicatorFadeOut();
 				});
 			}
 
 			function refreshLvmHost(){
+                updateIndicatorFadeIn();
 				$.getJSON($SCRIPT_ROOT + '/_refresh_lvm_host', function(data) {
                     if (!data || !data.vgs) return;
                     $.each(data.vgs, function(idx, vg){
     					$('#lvm-usage-'+vg.name).text(vg.used +' ('+ vg.free +' free) ' + vg.unit).fadeIn();
 	    				$('#lvm-usage-bar-'+vg.name).css({'width':vg.percent});
                     });
+                    updateIndicatorFadeOut();
 				});
 			}
 
 			function refreshUptimeHost(){
+                updateIndicatorFadeIn();
 				$.getJSON($SCRIPT_ROOT + '/_refresh_uptime_host', function(data) {
 					$('#uptime').text(data.day +' day(s) '+ data.time).fadeIn();
+                    updateIndicatorFadeOut();
 				});
 			}
 
 			function refreshMemoryContainers(){
+                updateIndicatorFadeIn();
 				$.getJSON($SCRIPT_ROOT + '/_refresh_memory_containers', function(data) {
 					data = data.data;
 					for (i in data) {
@@ -168,10 +202,12 @@
                                 /label\-(success|warning|important)/g,
                                 'label-'+memory_color(data[i].memusg, data[i].max_memusg));
 					}
+                    updateIndicatorFadeOut();
 				});
 			}
 
 			function refreshDiskContainers(){
+                updateIndicatorFadeIn();
 				$.getJSON($SCRIPT_ROOT + '/_refresh_disk_containers', function(data) {
 					data = data.data;
 					for (i in data) {
@@ -181,6 +217,22 @@
                                 /label\-(success|warning|important)/g,
                                 'label-'+percent_color(data[i].diskusg.percent));
 					}
+                    updateIndicatorFadeOut();
+				});
+			}
+
+			function refreshCpuContainers(){
+                updateIndicatorFadeIn();
+				$.getJSON($SCRIPT_ROOT + '/_refresh_cpu_containers', function(data) {
+					data = data.data;
+					for (i in data) {
+						var el = $('#cpu_'+data[i].name+' span');
+						el.text(data[i].cpu+' %');
+						el[0].className = el[0].className.replace(
+                                /label\-(success|warning|important)/g,
+                                'label-'+percent_color(data[i].cpu));
+					}
+                    updateIndicatorFadeOut();
 				});
 			}
 
@@ -226,20 +278,17 @@
 			}
 
 			function refresh(){
-				$('#home-load').fadeIn();
 				refreshMemoryHost();
 				refreshCPUHost();
 				refreshUptimeHost();
+				refreshCpuContainers();
 				refreshMemoryContainers();
-				$('#home-load').fadeOut();
 			}
 
 			function refreshLong(){
-				$('#home-load').fadeIn();
 				refreshDiskHost();
 				refreshLvmHost();
 				refreshDiskContainers();
-				$('#home-load').fadeOut();
 			}
 
 			$(function() {

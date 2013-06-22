@@ -142,6 +142,10 @@
 				{% if infos.status != 'STOPPED' %}
                 <li><strong>Pid :</strong> {{ infos.pid }}</li>
 				<li><strong>Network :</strong> {% if settings.flags == 'up' %}<span class="label label-success">Up</span>{% else %}<span class="label label-important">Down</span>{% endif %}</li>
+				{% if infos.cpu %}<li id="cpu_{{ container }}">
+                    <strong>CPU :</strong> <span class="label label-success">updating...</span>
+                    </li>{% endif %}
+                {% endif %}
 				{% if infos.memusg %}<li id="{{ container }}"><strong>Mem. usage :</strong> {{ render_memory_wrapper(infos.memusg, infos.max_memusg) }}</li>{% endif %}
 				{% if infos.diskusg.total %}<li id="disk_{{ container }}">
                     <strong>Disk usage :</strong> <span class="label label-success">updating...</span>
@@ -208,8 +212,19 @@
                     });
                 }
 
+                function refreshCPU(container){
+                    $.getJSON($SCRIPT_ROOT + '/_refresh_cpu_'+container, function(data) {
+                        var el = $('#cpu_'+container+' span');
+                        el.text(data.cpu + ' %');
+                        el[0].className = el[0].className.replace(
+                                /label\-(success|warning|important)/g,
+                                'label-'+percent_color(data.cpu));
+                    });
+                }
+
                 function refresh() {
                     refreshMemory("{{ container }}");
+                    refreshCPU("{{ container }}");
                 }
 
                 function refreshLong() {
