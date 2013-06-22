@@ -190,8 +190,6 @@ def edit(container=None):
                         lxc.cgroup(container, 'lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'])
                     flash(u'Swap limit updated for %s!' % container, 'success')
 
-                
-
             if ( not form['cpus'] and form['cpus'] != cfg['cpus'] ) or ( form['cpus'] != cfg['cpus'] and re.match('^[0-9,-]+$', form['cpus']) ):
                 lwp.push_config_value('lxc.cgroup.cpuset.cpus', form['cpus'], container=container)
                 if info["state"].lower() != "stopped":
@@ -285,48 +283,61 @@ def lxc_net():
 
         if request.method == 'POST':
             if lxc.running() == []:
-
                 cfg = lwp.get_net_settings()
+                ip_regex = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
 
-                if request.form['status'] == 'Disable' and cfg["use"] == "true":
-                    lwp.push_net_value('USE_LXC_BRIDGE', 'false')
-                    if lwp.net_restart() == 0:
-                        flash(u'LXC Networking disabled successfully!', 'success')
-                    else:
-                        flash(u'Failed to restart LXC networking.', 'error')
+                form = {}
+                try: form['use'] = request.form['use']
+                except KeyError: form['use'] = 'false'
 
-                if request.form['status'] == 'Enable' and cfg["use"] == "false":
+                try: form['bridge'] = request.form['bridge']
+                except KeyError: form['bridge'] = None
+
+                try: form['address'] = request.form['address']
+                except KeyError: form['address'] = None
+
+                try: form['netmask'] = request.form['netmask']
+                except KeyError: form['netmask'] = None
+
+                try: form['network'] = request.form['network']
+                except KeyError: form['network'] = None
+
+                try: form['range'] = request.form['range']
+                except KeyError: form['range'] = None
+
+                try: form['max'] = request.form['max']
+                except KeyError: form['max'] = None
+
+
+                if form['use'] == 'true' and form['use'] != cfg['use']:
                     lwp.push_net_value('USE_LXC_BRIDGE', 'true')
-                    if lwp.net_restart() == 0:
-                        flash(u'LXC Networking enabled successfully!', 'success')
-                    else:
-                        flash(u'Failed to restart LXC networking.', 'error')
 
-                ip_regex = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
-                if request.form['bridge'] != cfg['bridge'] and re.match('^[a-zA-Z0-9]+$', request.form['bridge']):
-                    flash(u'LXC Networking: Bridge name changed!', 'success')
-                    lwp.push_net_value('LXC_BRIDGE', request.form['bridge'])
+                elif form['use'] == 'false' and form['use'] != cfg['use']:
+                    lwp.push_net_value('USE_LXC_BRIDGE', 'false')
 
-                if request.form['address'] != cfg['address'] and re.match('^%s$' % ip_regex, request.form['address']):
-                    flash(u'LXC Networking: IP address changed!', 'success')
-                    lwp.push_net_value('LXC_ADDR', request.form['address'])
+                if form['bridge'] and form['bridge'] != cfg['bridge'] and re.match('^[a-zA-Z0-9_-]+$', form['bridge']):
+                    lwp.push_net_value('LXC_BRIDGE', form['bridge'])
 
-                if request.form['netmask'] != cfg['netmask'] and re.match('^%s$' % ip_regex, request.form['netmask']):
-                    flash(u'LXC Networking: Netmask changed!', 'success')
-                    lwp.push_net_value('LXC_NETMASK', request.form['netmask'])
+                if form['address'] and form['address'] != cfg['address'] and re.match('^%s$' % ip_regex, form['address']):
+                    lwp.push_net_value('LXC_ADDR', form['address'])
 
-                if request.form['network'] != cfg['network'] and re.match('^%s(?:/\d{1,2}|)$' % ip_regex, request.form['network']):
-                    flash(u'LXC Networking: Network changed!', 'success')
-                    lwp.push_net_value('LXC_NETWORK', request.form['network'])
+                if form['netmask'] and form['netmask'] != cfg['netmask'] and re.match('^%s$' % ip_regex, form['netmask']):
+                    lwp.push_net_value('LXC_NETMASK', form['netmask'])
 
-                if request.form['range'] != cfg['range'] and re.match('^%s,%s$' % (ip_regex, ip_regex), request.form['range']):
-                    flash(u'LXC Networking: DHCP range changed!', 'success')
-                    lwp.push_net_value('LXC_DHCP_RANGE', request.form['range'])
+                if form['network'] and form['network'] != cfg['network'] and re.match('^%s(?:/\d{1,2}|)$' % ip_regex, form['network']):
+                    lwp.push_net_value('LXC_NETWORK', form['network'])
 
-                if request.form['max'] != cfg['max'] and re.match('^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', request.form['max']):
-                    flash(u'LXC Networking: DHCP max IP changed!', 'success')
-                    lwp.push_net_value('LXC_DHCP_MAX', request.form['max'])
+                if form['range'] and form['range'] != cfg['range'] and re.match('^%s,%s$' % (ip_regex, ip_regex), form['range']):
+                    lwp.push_net_value('LXC_DHCP_RANGE', form['range'])
 
+                if form['max'] and form['max'] != cfg['max'] and re.match('^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', form['max']):
+                    lwp.push_net_value('LXC_DHCP_MAX', form['max'])
+
+
+                if lwp.net_restart() == 0:
+                    flash(u'LXC Network settings applied successfully!', 'success')
+                else:
+                    flash(u'Failed to restart LXC networking.', 'error')
             else:
                 flash(u'Stop all containers before restart lxc-net.', 'warning')
         return render_template('lxc-net.html', containers=lxc.ls(), cfg=lwp.get_net_settings(), running=lxc.running())
@@ -531,6 +542,7 @@ def create_container():
             command = request.form['command']
             if re.match('^(?!^containers$)|[a-zA-Z0-9_-]+$', name):
                 storage_method = request.form['backingstore']
+
                 if storage_method == 'default':
                     try:
                         if lxc.create(name, template=template, xargs=command) == 0:
@@ -539,8 +551,12 @@ def create_container():
                             flash(u'Failed to create %s!' % name, 'error')
                     except lxc.ContainerAlreadyExists:
                         flash(u'The Container %s is already created!' % name, 'error')
+                    except subprocess.CalledProcessError:
+                        flash(u'Error! %s' % name, 'error')
+
                 elif storage_method == 'directory':
                     directory = request.form['dir']
+
                     if re.match('^/[a-zA-Z0-9_/-]+$', directory) and directory != '':
                         try:
                             if lxc.create(name, template=template, storage='dir --dir %s' % directory, xargs=command) == 0:
@@ -549,6 +565,9 @@ def create_container():
                                 flash(u'Failed to create %s!' % name, 'error')
                         except lxc.ContainerAlreadyExists:
                             flash(u'The Container %s is already created!' % name, 'error')
+                        except subprocess.CalledProcessError:
+                            flash(u'Error! %s' % name, 'error')
+
                 elif storage_method == 'lvm':
                     lvname = request.form['lvname']
                     vgname = request.form['vgname']
@@ -584,70 +603,47 @@ def create_container():
     return render_template('login.html')
 
 
-# @app.route('/action/clone-container', methods=['GET', 'POST'])
-# def clone_container():
-#     '''
-#     verify all forms to clone a container
-#     '''
-#     if 'logged_in' in session:
-#         if session['su'] != 'Yes':
-#             return abort(403)
-#         if request.method == 'POST':
-#             name = request.form['name']
-#             command = request.form['command']
-#             if re.match('^(?!^containers$)|[a-zA-Z0-9_-]+$', name):
-#                 storage_method = request.form['backingstore']
-#                 if storage_method == 'default':
-#                     try:
-#                         if lxc.clone(orig=name, new=None) == 0:
-#                             flash(u'Container %s created successfully!' % name, 'success')
-#                         else:
-#                             flash(u'Failed to create %s!' % name, 'error')
-#                     except lxc.ContainerAlreadyExists:
-#                         flash(u'The Container %s is already created!' % name, 'error')
-#                 elif storage_method == 'directory':
-#                     directory = request.form['dir']
-#                     if re.match('^/[a-zA-Z0-9_/-]+$', directory) and directory != '':
-#                         try:
-#                             if lxc.create(name, template=template, backing_store='dir --dir %s' % directory, xargs=command) == 0:
-#                                 flash(u'Container %s created successfully!' % name, 'success')
-#                             else:
-#                                 flash(u'Failed to create %s!' % name, 'error')
-#                         except lxc.ContainerAlreadyExists:
-#                             flash(u'The Container %s is already created!' % name, 'error')
-#                 elif storage_method == 'lvm':
-#                     lvname = request.form['lvname']
-#                     vgname = request.form['vgname']
-#                     fstype = request.form['fstype']
-#                     fssize = request.form['fssize']
-#                     storage_options = 'lvm'
+@app.route('/action/clone-container', methods=['GET', 'POST'])
+def clone_container():
+    '''
+    verify all forms to clone a container
+    '''
+    if 'logged_in' in session:
+        if session['su'] != 'Yes':
+            return abort(403)
+        if request.method == 'POST':
+            orig = request.form['orig']
+            name = request.form['name']
+            
+            try:
+                snapshot = request.form['snapshot']
+                if snapshot == 'True': snapshot = True
+            except KeyError:
+                snapshot = False
 
-#                     if re.match('^[a-zA-Z0-9_-]+$', lvname) and lvname != '':
-#                         storage_options += ' --lvname %s' % lvname
-#                     if re.match('^[a-zA-Z0-9_-]+$', vgname) and vgname != '':
-#                         storage_options += ' --vgname %s' % vgname
-#                     if re.match('^[a-z0-9]+$', fstype) and fstype != '':
-#                         storage_options += ' --fstype %s' % fstype
-#                     if re.match('^[0-9][G|M]$', fssize) and fssize != '':
-#                         storage_options += ' --fssize %s' % fssize
+            if re.match('^(?!^containers$)|[a-zA-Z0-9_-]+$', name):
+                out = None
 
-#                     try:
-#                         if lxc.create(name, template=template, backing_store=storage_options, xargs=command) == 0:
-#                             flash(u'Container %s created successfully!' % name, 'success')
-#                         else:
-#                             flash(u'Failed to create %s!' % name, 'error')
-#                     except lxc.ContainerAlreadyExists:
-#                         flash(u'The container/logical volume %s is already created!' % name, 'error')
-#                 else:
-#                     flash(u'Missing parameters to create container!', 'error')
-#             else:
-#                 if name == '':
-#                     flash(u'Please enter a container name!', 'error')
-#                 else:
-#                     flash(u'Invalid name for \"%s\"!' % name, 'error')
+                try:
+                    out = lxc.clone(orig=orig, new=name, snapshot=snapshot)
+                except lxc.ContainerAlreadyExists:
+                    flash(u'The Container %s already exists!' % name, 'error')
+                except subprocess.CalledProcessError:
+                    flash(u'Can\'t snapshot a directory', 'error')
 
-#         return redirect(url_for('home'))
-#     return render_template('login.html')
+                if out and out == 0:
+                    flash(u'Container %s cloned into %s successfully!' % (orig, name), 'success')
+                elif out and out != 0:
+                    flash(u'Failed to clone %s into %s!' % (orig, name), 'error')
+
+            else:
+                if name == '':
+                    flash(u'Please enter a container name!', 'error')
+                else:
+                    flash(u'Invalid name for \"%s\"!' % name, 'error')
+
+        return redirect(url_for('home'))
+    return render_template('login.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -700,6 +696,7 @@ def refresh_uptime_host():
     if 'logged_in' in session:
         return jsonify(lwp.host_uptime())
 
+
 @app.route('/_refresh_disk_host')
 def refresh_disk_host():
     if 'logged_in' in session:
@@ -709,7 +706,6 @@ def refresh_disk_host():
 def refresh_lvm_host():
     if 'logged_in' in session:
         return jsonify(lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')))
-
 
 @app.route('/_refresh_memory_<name>')
 def refresh_memory_containers(name=None):

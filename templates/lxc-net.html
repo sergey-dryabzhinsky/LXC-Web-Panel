@@ -3,21 +3,20 @@
 {% block content %}
 <div class="span9">
 	{{ super() }}
-	<h3 class="head head-networking">LXC Network</h3>
-	<div class="control-group switch-networking">
-		<div class="controls">
-			<div class="switch" data-on-label="<i class='icon-ok icon-white'></i>" data-off-label="<i class='icon-remove icon-white'></i>" data-on="success" data-off="danger">
-				<input type="checkbox" {% if cfg.use == 'true' %}checked{% endif %}{% if running != [] %} disabled{% endif %} />
+	<form id="config" class="form-horizontal" action="{{ url_for('lxc_net') }}" method="post">
+		<h3 class="head head-networking">LXC Network</h3>
+		<div class="control-group switch-networking">
+			<div class="controls" style="margin-left: 5px;">
+				<div class="switch" data-on-label="<i class='icon-ok icon-white'></i>" data-off-label="<i class='icon-remove icon-white'></i>" data-on="success" data-off="danger">
+					<input type="checkbox" name="use" value="true" {% if cfg.use == 'true' %}checked{% endif %}{% if running != [] %} disabled{% endif %} />
+				</div>
 			</div>
 		</div>
-	</div>
-	
-	{% if running != [] %}<h4 class="text-error">Please, stop all containers before restart lxc-net.</h4><br />{% endif %}
+		
+		{% if running != [] %}<h4 class="text-error">Please, stop all containers before restart lxc-net.</h4><br />{% endif %}
 
-	<form id="config" class="form-horizontal" action="{{ url_for('lxc_net') }}" method="post">
-		<div class="lxc-net">
-			<input type="hidden" name="status" value="{% if cfg.use == 'true' %}Enable{% else %}Disable{% endif %}">
-			
+	
+		<div class="lxc-net">			
 			<div class="control-group">
 				<label class="control-label" for="inputBridge">Bridge name</label>
 				<div class="controls">
@@ -81,25 +80,21 @@
 	<script type="text/javascript">
 		$(document).ready(function(){
 			var networking = $(".lxc-net");
-			var inputStatus = $("input[name='status']");
 			var inputText = $("input[type='text']");
 
 			if ('{{cfg.use}}' == 'false') {
-				inputStatus.val('Disable');
-				//inputText.attr('disabled', 'disabled');
-				//networking.fadeTo(0, 0.4);
+				inputText.attr('disabled', 'disabled');
+				networking.fadeTo(0, 0.4);
 			}
 
 			$(".switch-networking").on('switch-change', function(e, data){
 				if(data.value){
-					inputStatus.val('Enable');
-					//inputText.removeAttr('disabled');
-					//networking.fadeTo(400, 1);
+					inputText.removeAttr('disabled');
+					networking.fadeTo(400, 1);
 				}
 				else{
-					inputStatus.val('Disable');
-					//inputText.attr('disabled', 'disabled');
-					//networking.fadeTo(400, 0.4);
+					inputText.attr('disabled', 'disabled');
+					networking.fadeTo(400, 0.4);
 				}
 			});
 		});

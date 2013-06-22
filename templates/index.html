@@ -1,6 +1,6 @@
-{% set td = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
-{% set tr = {'RUNNING':'success','FROZEN':'info','STOPPED':'error'} %}
-{% set disabled = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
+{% set td = {'running':'success','frozen':'info','stopped':'important'} %}
+{% set tr = {'running':'success','frozen':'info','stopped':'error'} %}
+{% set disabled = {'running':'success','frozen':'info','stopped':'important'} %}
 {% extends "layout.html" %}
 {% block title %}Overview{% endblock %}
 {% block content %}
@@ -117,6 +117,7 @@
 {%- endmacro %}
 
 {% block script %}
+<script src="/static/js/bootstrapSwitch.js"></script>
 <script type="text/javascript">
 			function refreshMemoryHost(){
 				$.getJSON($SCRIPT_ROOT + '/_refresh_memory_host', function(data) {

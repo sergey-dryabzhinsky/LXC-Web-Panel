@@ -12,17 +12,18 @@
 				</tr>{% endif %}{% endfor %}
 			</tbody>
 		</table>
+	</div>
 
-		<div class="span2">
-			<div class="well">
-				<ul class="nav nav-list">
-					<li class="text-success"><i class="icon-ok"></i> Enabled</li>
-					<li class="text-warning"><i class="icon-warning-sign"></i> Missing</li>
-					<li class="text-error"><i class="icon-remove"></i> Required</li>
-				</ul>
-			</div>
+	<div class="span2">
+		<div class="well">
+			<ul class="nav nav-list">
+				<li class="text-success"><i class="icon-ok"></i> Enabled</li>
+				<li class="text-warning"><i class="icon-warning-sign"></i> Missing</li>
+				<li class="text-error"><i class="icon-remove"></i> Required</li>
+			</ul>
 		</div>
 	</div>
+	
 {% else %}
 	<div class="alert alert-error alert-block dont-hide span6" id="alert">
 		<button type="button" class="close" data-dismiss="alert">&times;</button>

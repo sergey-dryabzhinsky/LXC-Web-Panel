@@ -9,6 +9,10 @@ import urllib2
 import ConfigParser
 import re
 
+
+class CalledProcessError(Exception):
+    pass
+
 cgroup = {}
 cgroup['type'] = 'lxc.network.type'
 cgroup['link'] = 'lxc.network.link'
@@ -25,11 +29,8 @@ cgroup['shares'] = 'lxc.cgroup.cpu.shares'
 cgroup['deny'] = 'lxc.cgroup.devices.deny'
 cgroup['allow'] = 'lxc.cgroup.devices.allow'
 
-class CalledProcessError(Exception):
-    pass
-
 class FakeSection(object):
-
+    
     def __init__(self, fp):
         self.fp = fp
         self.sechead = '[DEFAULT]\n'
@@ -90,7 +91,6 @@ def ls_auto():
             prio = ''
         prio_list[ name ] = prio
     return prio_list
-
 
 def memory_usage(name):
     '''

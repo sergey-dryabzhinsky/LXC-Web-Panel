@@ -24,8 +24,6 @@ import os
 def _run(cmd, output=False):
     '''
     To run command easier
-    :param cmd:
-    :param output:
     '''
     if output:
         try:
