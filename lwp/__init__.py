@@ -307,7 +307,7 @@ def check_version(url=None):
     returns latest LWP version (dict with current and latest)
     '''
     f = open('version')
-    current = float(f.read())
+    current = f.read()
     f.close()
     if not url:
         url = 'http://lxc-webpanel.github.com/version'
@@ -571,5 +571,39 @@ def get_filesystem_usage(container):
                                 'percent': usage[4].strip('%')}
             except Exception as e:
                 pass
+
+    return result
+
+
+def get_template_options(template):
+    '''
+    Get lxc template options: arch & releases
+    '''
+    result = {
+        "arch" : [],
+        "releases" : [],
+        "system" : {
+            "arch" : platform.machine(),
+            "release" : platform.linux_distribution()[2],
+        }
+    }
+
+    if not os.path.isfile('templates.conf'):
+        return result
+
+    config = ConfigParser.SafeConfigParser(allow_no_value=True)
+    config.readfp(open('templates.conf'))
+
+    if config.has_section(template):
+        if config.has_option(template, 'arch'):
+            result['arch'].extend( config.get(template, 'arch').split(',') )
+        if config.has_option(template, 'releases'):
+            result['releases'].extend( config.get(template, 'releases').split(',') )
+    elif config.has_section('default'):
+        if config.has_option('default', 'arch'):
+            result['arch'].extend( config.get('default', 'arch').split(',') )
+        if config.has_option('default', 'releases'):
+            result['releases'].extend( config.get('default', 'releases').split(',') )
+
 
     return result

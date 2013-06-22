@@ -7,7 +7,7 @@
 <div class="span9">
 	{{ super() }}
 	{% if session.su == 'Yes' %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-danger" data-toggle="modal" data-target="#reboot"><i class="icon-off icon-white"></i> Reboot</a></p>
-	{% if containers != [] %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-inverse" data-toggle="modal" data-target="#cloneCT"> <i class="icon-repeat icon-white"></i> Clone <abbr title="Container">CT</abbr></a></p{% endif %}
+	{% if containers != [] %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-inverse" data-toggle="modal" data-target="#cloneCT"> <i class="icon-repeat icon-white"></i> Clone <abbr title="Container">CT</abbr></a></p>{% endif %}
 	<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-success" data-toggle="modal" data-target="#createCT"><i class="icon-plus-sign icon-white"></i> Create <abbr title="Container">CT</abbr></a></p>{% endif %}
 
 	<div id="host-area" class="hero-unit">
@@ -25,7 +25,7 @@
 					<abbr title="Cached memory"><span class="bar bar-success" id="memory-cache-usage-bar" style="width: 0%;"></span></abbr>
 				</div>
 			</div>
-			<div class="span3" style="margin-left:20px;">
+			<div class="span3" style="margin-top: -30px; margin-left:20px;">
                 <h3>&nbsp;</h3><!-- Vertical align -->
 				<p>Disk usage : <span id="disk-usage" class="hide"></span></p>
 				<div class="progress" style="width:250px;">
@@ -267,9 +267,10 @@
                 updateIndicatorFadeIn();
 				$.getJSON($SCRIPT_ROOT + '/_check_version', function(data) {
 					if (data.latest > data.current) {
-						$('#vernumber').text(data.latest)
-						$('#version').fadeIn().animate({"left": "-=25px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=25px"}, 65).fadeTo(5000, 0.5);
-						$('#version').hover(function() {
+						$('#vernumber').text(data.latest);
+                        var $version = $('#version');
+						$version.fadeIn().animate({"left": "-=25px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=25px"}, 65).fadeTo(5000, 0.5);
+						$version.hover(function() {
 							$(this).fadeTo(400, 1);
 						},
 						function() {
@@ -318,29 +319,73 @@
 				// Clone CT
 				$('#advancedclone').click(function(e){ e.preventDefault(); $('#advancedclonediv').slideToggle(); });
 
+				// Create CT
 				$(".backingstore").on('change',function(){
-						var _val = $(this).val();
-						var _lvm = $(this).closest('.advanced-wrapper').find('.lvm');
-						var _directory = $(this).closest('.advanced-wrapper').find('.directory');
-						
-						if( _val == 'lvm'){
-							_lvm.slideDown();
-							_directory.slideUp();
-						}
-						else if ( _val == 'directory' ){
-							_directory.slideDown();
-							_lvm.slideUp();
-						}
-						else{
-							_directory.slideUp();
-							_lvm.slideUp();
-						}
-					});
+                    var _val = $(this).val();
+                    var _lvm = $(this).closest('.advanced-wrapper').find('.lvm');
+                    var _directory = $(this).closest('.advanced-wrapper').find('.directory');
 
-					$('.modalbutton').on('click', function () {
-						$('.buttons-modal-footer').slideUp();
-						$('.loader-modal-footer').slideDown();
-					})
-			});{% endif %}
+                    if( _val == 'lvm'){
+                        _lvm.slideDown();
+                        _directory.slideUp();
+                    }
+                    else if ( _val == 'directory' ){
+                        _directory.slideDown();
+                        _lvm.slideUp();
+                    }
+                    else{
+                        _directory.slideUp();
+                        _lvm.slideUp();
+                    }
+                });
+
+                $('.modalbutton').on('click', function () {
+                    $('.buttons-modal-footer').slideUp();
+                    $('.loader-modal-footer').slideDown();
+                });
+
+                function appendTemplateOptions() {
+                    var self = $('select#selectTemplate');
+                    if (!self) return;
+
+                    var _val = self.val();
+                    $.getJSON($SCRIPT_ROOT + '/_get_template_options_' + _val, function(data) {
+                        var _archSelect = $('#selectTemplateArch');
+                        var _releaseSelect = $('#selectTemplateRelease');
+
+                        _archSelect.empty().append(function(){
+                            var output = '';
+                                output += '<option value="">-- System default --</option>';
+                            $.each(data.arch, function(index, value){
+                                if (value == data.system.arch) {
+                                    output += '<option value="'+value+'" selected="selected">'+value+'</option>';
+                                } else {
+                                    output += '<option value="'+value+'">'+value+'</option>';
+                                }
+                            });
+                            return output;
+                        });
+                        _releaseSelect.empty().append(function(){
+                            var output = '';
+                                output += '<option value="">-- System default --</option>';
+                            $.each(data.releases, function(index, value){
+                                if (value == data.system.release) {
+                                    output += '<option value="'+value+'" selected="selected">'+value+'</option>';
+                                } else {
+                                    output += '<option value="'+value+'">'+value+'</option>';
+                                }
+                            });
+                            return output;
+                        });
+                    });
+                }
+
+                appendTemplateOptions();
+				$("#selectTemplate").on('change',function(){
+                    appendTemplateOptions();
+                });
+			});
+
+            {% endif %}
 </script>
 {% endblock %}
