@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../')
-from lxclite import exists, stopped, ContainerDoesntExists, cgroup
+from lxclite import exists, stopped, ContainerDoesntExists
 import subprocess
 import os
 import platform
@@ -8,6 +8,22 @@ import time
 import urllib2
 import ConfigParser
 import re
+
+cgroup = {}
+cgroup['type'] = 'lxc.network.type'
+cgroup['link'] = 'lxc.network.link'
+cgroup['flags'] = 'lxc.network.flags'
+cgroup['hwaddr'] = 'lxc.network.hwaddr'
+cgroup['rootfs'] = 'lxc.rootfs'
+cgroup['utsname'] = 'lxc.utsname'
+cgroup['arch'] = 'lxc.arch'
+cgroup['ipv4'] = 'lxc.network.ipv4'
+cgroup['memlimit'] = 'lxc.cgroup.memory.limit_in_bytes'
+cgroup['swlimit'] = 'lxc.cgroup.memory.memsw.limit_in_bytes'
+cgroup['cpus'] = 'lxc.cgroup.cpuset.cpus'
+cgroup['shares'] = 'lxc.cgroup.cpu.shares'
+cgroup['deny'] = 'lxc.cgroup.devices.deny'
+cgroup['allow'] = 'lxc.cgroup.devices.allow'
 
 class CalledProcessError(Exception):
     pass
@@ -69,6 +85,7 @@ def ls_auto():
         if dig.isdigit():
             prio = int(dig)
             name = "-".join(name.split("-")[1:])
+            name = name.replace(".conf", "")
         else:
             prio = ''
         prio_list[ name ] = prio
@@ -139,6 +156,7 @@ def host_memory_usage():
                     'total': int(total/1024)}
     '''
     out = open('/proc/meminfo')
+    total = free = buffers = cached = swap = 0
     for line in out:
         if 'MemTotal:' == line.split()[0]:
             split = line.split()

@@ -24,6 +24,7 @@ PORT = int(config.get('global', 'port'))
 
 # Flask app
 app = Flask(__name__)
+app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 app.config.from_object(__name__)
 
 
@@ -151,7 +152,7 @@ def edit(container=None):
                 lwp.push_config_value('lxc.network.type', form['type'], container=container)
                 flash(u'Link type updated for %s!' % container, 'success')
 
-            if form['link'] != cfg['link'] and re.match('^\w+$', form['link']):
+            if form['link'] != cfg['link'] and re.match('^[\w\d]+$', form['link']):
                 lwp.push_config_value('lxc.network.link', form['link'], container=container)
                 flash(u'Link name updated for %s!' % container, 'success')
 
@@ -169,8 +170,8 @@ def edit(container=None):
 
                 if form['memlimit'] != cfg['memlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.limit_in_bytes', form['memlimit'], container=container)
-                    if info["state"].lower() == "running":
-                        lxc.push_cgroup_value(container, 'lxc.cgroup.memory.limit_in_bytes', form['memlimit'])
+                    if info["state"].lower() != "stopped":
+                        lxc.cgroup(container, 'lxc.cgroup.memory.limit_in_bytes', form['memlimit'])
                     flash(u'Memory limit updated for %s!' % container, 'success')
 
             if form['swlimit'] != cfg['swlimit'] and form['swlimit'].isdigit() and int(form['swlimit']) <= int(host_memory['total'] * 2):
@@ -185,22 +186,22 @@ def edit(container=None):
 
                 elif form['swlimit'] != cfg['swlimit'] and form['memlimit'] <= form['swlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'], container=container)
-                    if info["state"].lower() == "running":
-                        lxc.push_cgroup_value(container, 'lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'])
+                    if info["state"].lower() != "stopped":
+                        lxc.cgroup(container, 'lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'])
                     flash(u'Swap limit updated for %s!' % container, 'success')
 
                 
 
             if ( not form['cpus'] and form['cpus'] != cfg['cpus'] ) or ( form['cpus'] != cfg['cpus'] and re.match('^[0-9,-]+$', form['cpus']) ):
                 lwp.push_config_value('lxc.cgroup.cpuset.cpus', form['cpus'], container=container)
-                if info["state"].lower() == "running":
-                    lxc.push_cgroup_value(container, 'lxc.cgroup.cpuset.cpus', form['cpus'])
+                if info["state"].lower() != "stopped":
+                    lxc.cgroup(container, 'lxc.cgroup.cpuset.cpus', form['cpus'])
                 flash(u'CPUs updated for %s!' % container, 'success')
 
             if ( not form['shares'] and form['shares'] != cfg['shares'] ) or ( form['shares'] != cfg['shares'] and re.match('^[0-9]+$', form['shares']) ):
                 lwp.push_config_value('lxc.cgroup.cpu.shares', form['shares'], container=container)
-                if info["state"].lower() == "running":
-                    lxc.push_cgroup_value(container, 'lxc.cgroup.cpu.shares', form['shares'])
+                if info["state"].lower() != "stopped":
+                    lxc.cgroup(container, 'lxc.cgroup.cpu.shares', form['shares'])
                 flash(u'CPU shares updated for %s!' % container, 'success')
 
             if form['rootfs'] != cfg['rootfs'] and re.match('^[a-zA-Z0-9_/\-]+', form['rootfs']):
@@ -211,32 +212,32 @@ def edit(container=None):
             if form['autostart'] == 'True' and (not container in auto or auto[container] != form['priority']):
                 try:
                     if container in auto and auto[container]:
-                        old_conf = '/etc/lxc/auto/%06d-%s' % (auto[container], container,)
+                        old_conf = '/etc/lxc/auto/%06d-%s.conf' % (auto[container], container,)
                         if os.path.exists(old_conf):
                             os.remove(old_conf)
                             flash(u'Autostart for %s: old priority dropped' % container, 'success')
                     else:
-                        old_conf = '/etc/lxc/auto/%s' % (container,)
+                        old_conf = '/etc/lxc/auto/%s.conf' % (container,)
                         if os.path.exists(old_conf):
                             os.remove(old_conf)
                             flash(u'Autostart for %s: default priority dropped' % container, 'success')
 
                     if form['priority']:
-                        new_conf = '/etc/lxc/auto/%06d-%s' % (form['priority'], container, )
+                        new_conf = '/etc/lxc/auto/%06d-%s.conf' % (form['priority'], container, )
                         flash(u'Autostart for %s: set new priority' % container, 'success')
                     else:
-                        new_conf = '/etc/lxc/auto/%s' % (container,)
+                        new_conf = '/etc/lxc/auto/%s.conf' % (container,)
 
                     os.symlink('/var/lib/lxc/%s/config' % container, new_conf)
                     flash(u'Autostart enabled for %s' % container, 'success')
                 except OSError:
-                    flash(u'Unable to create symlink \'/etc/lxc/auto/%s\'' % container, 'error')
+                    flash(u'Unable to create symlink \'/etc/lxc/auto/%s.conf\'' % container, 'error')
             elif not form['autostart'] and container in auto:
                 try:
                     if auto[container]:
-                        old_conf = '/etc/lxc/auto/%06d-%s' % (auto[container], container, )
+                        old_conf = '/etc/lxc/auto/%06d-%s.conf' % (auto[container], container, )
                     else:
-                        old_conf = '/etc/lxc/auto/%s' % (container, )
+                        old_conf = '/etc/lxc/auto/%s.conf' % (container, )
                     os.remove(old_conf)
                     flash(u'Autostart disabled for %s' % container, 'success')
                 except OSError:
@@ -260,6 +261,9 @@ def edit(container=None):
         if settings["ipv4_real"]:
             settings["ipv4_hint"] = settings["ipv4"]
             settings["ipv4"] = ''
+
+        # Align value to slider step
+        host_memory["total"] -= host_memory["total"] % 2
 
         return render_template('edit.html',
                                containers=lxc.ls(),
