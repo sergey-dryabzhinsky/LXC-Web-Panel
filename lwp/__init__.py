@@ -9,9 +9,7 @@ import urllib2
 import ConfigParser
 import re
 
-
-class CalledProcessError(Exception):
-    pass
+class CalledProcessError(Exception): pass
 
 cgroup = {}
 cgroup['type'] = 'lxc.network.type'
@@ -29,13 +27,10 @@ cgroup['shares'] = 'lxc.cgroup.cpu.shares'
 cgroup['deny'] = 'lxc.cgroup.devices.deny'
 cgroup['allow'] = 'lxc.cgroup.devices.allow'
 
-
 class FakeSection(object):
-
     def __init__(self, fp):
         self.fp = fp
         self.sechead = '[DEFAULT]\n'
-
     def readline(self):
         if self.sechead:
             try:
@@ -69,22 +64,25 @@ def file_exist(filename):
         with open(filename) as f:
             f.close()
             return True
-    except IOError as e:
+    except IOError:
         return False
 
 
-def ls():
+def ls_auto():
     '''
-    return a list of all containers
+    returns a list of autostart containers
     '''
     try:
-        ct_list = os.listdir('/var/lib/lxc/')
+        auto_list = os.listdir('/etc/lxc/auto/')
     except OSError:
-        ct_list = []
-    return sorted(ct_list)
+        auto_list = []
+    return auto_list
 
 
 def memory_usage(name):
+    '''
+    returns memory usage in MB
+    '''
     if not exists(name):
         raise ContainerNotExists("The container (%s) does not exist!" % name)
     if name in stopped():
@@ -95,39 +93,6 @@ def memory_usage(name):
     except:
         return 0
     return int(out[0])/1024/1024
-
-
-def max_memory_usage(name):
-    if not exists(name):
-        raise ContainerNotExists("The container (%s) does not exist!" % name)
-    if name in stopped():
-        return 0
-    cmd = ['lxc-cgroup -n %s memory.limit_in_bytes' % name]
-    try:
-        out = subprocess.check_output(cmd, shell=True).splitlines()
-    except:
-        return 0
-    return int(out[0])/1024/1024
-
-
-def real_ipv4_container(name):
-    if name in stopped():
-        return ''
-    cmd = ["lxc-attach --name %s -- ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'" % name]
-    try:
-        out = subprocess.check_output(cmd, shell=True)
-    except:
-        return ''
-    return out
-
-
-def get_template_help(name):
-    cmd = ["lxc-create -t %s -h" % name]
-    try:
-        out = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-        return out
-    except Exception as e:
-        return unicode(e.output)
 
 
 def host_memory_usage():
@@ -182,7 +147,7 @@ def host_cpu_percent():
     return str('%.1f' % percent)
 
 
-def host_disk_usage():
+def host_disk_usage(partition=None):
     '''
     returns a dict of disk usage values
                     {'total': usage[1],
@@ -190,7 +155,9 @@ def host_disk_usage():
                     'free': usage[3],
                     'percent': usage[4]}
     '''
-    usage = subprocess.check_output(['df -h /'], shell=True).split('\n')[1].split()
+    if not partition:
+        partition = '/'
+    usage = subprocess.check_output(['df -h %s' % partition], shell=True).split('\n')[1].split()
     return {'total': usage[1],
             'used': usage[2],
             'free': usage[3],
@@ -237,7 +204,7 @@ def get_templates_list():
     try:
         path = os.listdir('/usr/share/lxc/templates')
     except:
-        path = os.listdir('/usr/lib/lxc/templates')
+        path = os.listdir('/usr/lib/lxc/templates') 
 
     if path:
         for line in path:
@@ -254,8 +221,8 @@ def check_version():
     current = float(f.read())
     f.close()
     latest = float(urllib2.urlopen('http://lxc-webpanel.github.com/version').read())
-    return {'current': current,
-            'latest': latest}
+    return {'current':current,
+            'latest':latest}
 
 
 def get_net_settings():
@@ -319,7 +286,7 @@ def get_container_settings(name):
     try:
         cfg['ipv4'] = config.get('DEFAULT', cgroup['ipv4'])
     except ConfigParser.NoOptionError:
-        cfg['ipv4'] = real_ipv4_container(name)
+        cfg['ipv4'] = ''
     try:
         cfg['memlimit'] = re.sub(r'[a-zA-Z]', '', config.get('DEFAULT', cgroup['memlimit']))
     except ConfigParser.NoOptionError:
@@ -336,12 +303,18 @@ def get_container_settings(name):
         cfg['shares'] = config.get('DEFAULT', cgroup['shares'])
     except ConfigParser.NoOptionError:
         cfg['shares'] = ''
+
+    if '%s.conf' % name in ls_auto():
+        cfg['auto'] = True
+    else:
+        cfg['auto'] = False
+
     return cfg
 
 
 def push_net_value(key, value, filename='/etc/default/lxc'):
     '''
-    Raplace a var in the lxc-net config file
+    replace a var in the lxc-net config file
     '''
     if filename:
         config = ConfigParser.RawConfigParser()
@@ -376,10 +349,31 @@ def push_net_value(key, value, filename='/etc/default/lxc'):
 
 def push_config_value(key, value, container=None):
     '''
-    Raplace a var in a container config file
+    replace a var in a container config file
     '''
+
+    def save_cgroup_devices(filename=None):
+        '''
+        returns multiple values (lxc.cgroup.devices.deny and lxc.cgroup.devices.allow) in a list.
+        because ConfigParser cannot make this...
+        '''
+        if filename:
+            values = []
+            i = 0
+
+            load = open(filename, 'r')
+            read = load.readlines()
+            load.close()
+
+            while i < len(read):
+                if not read[i].startswith('#') and re.match('lxc.cgroup.devices.deny|lxc.cgroup.devices.allow', read[i]):
+                    values.append(read[i])
+                i += 1
+            return values
+
     if container:
         filename = '/var/lib/lxc/%s/config' % container
+        save = save_cgroup_devices(filename=filename)
 
         config = ConfigParser.RawConfigParser()
         config.readfp(FakeSection(open(filename)))
@@ -399,6 +393,9 @@ def push_config_value(key, value, container=None):
             config.write(configfile)
 
         DelSection(filename=filename)
+
+        with open(filename, "a") as configfile:
+            configfile.writelines(save)
 
 
 def net_restart():
