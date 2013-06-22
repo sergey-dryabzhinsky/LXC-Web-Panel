@@ -588,6 +588,12 @@ def get_template_options(template):
         }
     }
 
+    # XXX: some distros arch not equal to system arch...
+    # Dunno what to do, maybe aliases in templates.conf...
+    if result["system"]["arch"] == "x86_64":
+        if platform.linux_distribution()[0] in ('Debian', 'Ubuntu'):
+            result["system"]["arch"] = 'amd64'
+
     if not os.path.isfile('templates.conf'):
         return result
 
