@@ -146,7 +146,7 @@ def container_cpu_percent(name):
 
     cmd = ["lxc-ps --name %s -- u | awk 'BEGIN{s=0.0}{s+=$4}END{print s}'" % name]
     try:
-        out = subprocess.check_output(cmd, shell=True)
+        out = subprocess.check_output(cmd, shell=True).strip()
     except:
         return '0'
     return out

@@ -284,9 +284,12 @@
 			function refresh(){
 				refreshMemoryHost();
 				refreshCPUHost();
-				refreshUptimeHost();
+			}
+
+			function refreshMedium(){
 				refreshCpuContainers();
 				refreshMemoryContainers();
+				refreshUptimeHost();
 			}
 
 			function refreshLong(){
@@ -301,6 +304,7 @@
 				check_version();
 				{% if session.su == 'Yes' and containers == [] %}$('#createCT').modal('show');{% endif %}
 				window.setInterval('refresh()', 15*1000);
+				window.setInterval('refreshMedium()', 60*1000);
 				window.setInterval('refreshLong()', 300*1000);
 			});
 
