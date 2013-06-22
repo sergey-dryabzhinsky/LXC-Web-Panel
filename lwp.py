@@ -685,12 +685,6 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/_refresh_cpu_host')
-def refresh_cpu_host():
-    if 'logged_in' in session:
-        return lwp.host_cpu_percent()
-
-
 @app.route('/_refresh_uptime_host')
 def refresh_uptime_host():
     if 'logged_in' in session:
@@ -746,6 +740,26 @@ def refresh_disk_containers(name=None):
             return jsonify(lwp.host_disk_usage())
         return jsonify({
             'diskusg': lwp.get_filesystem_usage(name),
+        })
+
+
+@app.route('/_refresh_cpu_<name>')
+def refresh_cpu_containers(name=None):
+    if 'logged_in' in session:
+        if name == 'containers':
+            containers_running = lxc.running()
+            containers = []
+            for container in containers_running:
+                container = container.replace(' (auto)', '')
+                containers.append({
+                    'name': container,
+                    'cpu': lwp.container_cpu_percent(container),
+                })
+            return jsonify(data=containers)
+        elif name == 'host':
+            return jsonify(lwp.host_cpu_percent())
+        return jsonify({
+            'cpu': lwp.container_cpu_percent(name),
         })
 
 

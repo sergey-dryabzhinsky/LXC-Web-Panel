@@ -137,6 +137,21 @@ def real_ipv4_container(name):
     return out
 
 
+def container_cpu_percent(name):
+    '''
+    returns CPU usage in percent
+    '''
+    if name in stopped():
+        return '0'
+
+    cmd = ["lxc-ps --name %s -- u | awk 'BEGIN{s=0.0}{s+=$4}END{print s}'" % name]
+    try:
+        out = subprocess.check_output(cmd, shell=True)
+    except:
+        return '0'
+    return out
+
+
 def get_template_help(name):
     cmd = ["lxc-create -t %s -h" % name]
     try:
