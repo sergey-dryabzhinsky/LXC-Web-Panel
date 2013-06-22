@@ -68,6 +68,7 @@ def home():
             for container in listx[status]:
                 item = {
                     'name': container,
+                    'cpu': lwp.container_cpu_percent(container),
                     'memusg': lwp.memory_usage(container),
                     'max_memusg': lwp.max_memory_usage(container),
                     'settings': lwp.get_container_settings(container)
@@ -250,6 +251,7 @@ def edit(container=None):
             'status': status,
             'pid': pid,
             'memusg': lwp.memory_usage(container),
+            'cpu': lwp.container_cpu_percent(container),
             'max_memusg': lwp.max_memory_usage(container),
             'diskusg': lwp.get_filesystem_usage(container)
         }
