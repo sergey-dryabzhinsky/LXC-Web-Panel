@@ -62,7 +62,7 @@
         {% for status in containers_all %}
             {% set container_status = status.status|upper %}
             <tr>
-                <td colspan="6">
+                <td colspan="7">
                     <h4><span class="label label-{{ td[container_status] }}">{{ status.status|capitalize }}</span></h4>
                 </td>
             </tr>
