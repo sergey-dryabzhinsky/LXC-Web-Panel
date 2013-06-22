@@ -25,7 +25,7 @@
 					<abbr title="Cached memory"><span class="bar bar-success" id="memory-cache-usage-bar" style="width: 0%;"></span></abbr>
 				</div>
 			</div>
-			<div class="span3" style="margin-top:29px; margin-left:20px;">
+			<div class="span3" style="margin-left:20px;">
                 <h3>&nbsp;</h3><!-- Vertical align -->
 				<p>Disk usage : <span id="disk-usage" class="hide"></span></p>
 				<div class="progress" style="width:250px;">
@@ -36,11 +36,11 @@
 		</div>
         {% if lvm and lvm.vgs %}
 		<div class="row">
-			<div class="span3" style="margin-top:29px; margin-left:20px;">
+			<div class="span3" style="margin-left:20px;">
                 <h3>LVM</h3>
 			</div>
 
-			<div class="span3" style="margin-top:29px; margin-left:20px;">
+			<div class="span3" style="margin-left:20px;">
                 {% for vg in lvm.vgs %}
 
                 <h4>{{ vg.name }}</h4>
@@ -164,22 +164,22 @@
 			function refreshDiskHost(){
                 updateIndicatorFadeIn();
 				$.getJSON($SCRIPT_ROOT + '/_refresh_disk_host', function(data) {
+                    updateIndicatorFadeOut();
                     if (!data) return;
 					$('#disk-usage').text(data.used +' ('+ data.free +' free)').fadeIn();
 					$('#disk-usage-bar').css({'width':data.percent});
-                    updateIndicatorFadeOut();
 				});
 			}
 
 			function refreshLvmHost(){
                 updateIndicatorFadeIn();
 				$.getJSON($SCRIPT_ROOT + '/_refresh_lvm_host', function(data) {
+                    updateIndicatorFadeOut();
                     if (!data || !data.vgs) return;
                     $.each(data.vgs, function(idx, vg){
     					$('#lvm-usage-'+vg.name).text(vg.used +' ('+ vg.free +' free) ' + vg.unit).fadeIn();
 	    				$('#lvm-usage-bar-'+vg.name).css({'width':vg.percent});
                     });
-                    updateIndicatorFadeOut();
 				});
 			}
 
@@ -250,16 +250,14 @@
 			}
 
 			function percent_color(value){
-				if(value != 0) {
-                    // 80% - ok
-					if ('0' <= value && value < 80)
-					    return 'success';
-                    // 90% - not ok
-					else if (80 <= value && value < 90)
-						return 'warning';
-					else
-						return 'important';
-                }
+                // 80% - ok
+                if ('0' <= value && value < 80)
+                    return 'success';
+                // 90% - not ok
+                else if (80 <= value && value < 90)
+                    return 'warning';
+                else
+                    return 'important';
 			}
 
 			function check_version(){
