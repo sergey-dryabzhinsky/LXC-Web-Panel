@@ -464,8 +464,8 @@ def action():
     '''
     if 'logged_in' in session:
         if request.args['token'] == session.get('token') :
-            action = request.args['action']
             name = request.args['name']
+            action = request.args['action']
 
             if action == 'start':
                 try:
@@ -520,13 +520,15 @@ def action():
                     flash(u'System will now restart!', 'success')
                 except:
                     flash(u'System error!', 'error')
-        try:
-            if request.args['from'] == 'edit':
-                return redirect('../%s/edit' % name)
-            else:
+
+            try:
+                if request.args['from'] == 'edit':
+                    return redirect('../%s/edit' % name)
+                else:
+                    return redirect(url_for('home'))
+            except:
                 return redirect(url_for('home'))
-        except:
-            return redirect(url_for('home'))
+
     return render_template('login.html')
 
 
@@ -541,7 +543,17 @@ def create_container():
         if request.method == 'POST':
             name = request.form['name']
             template = request.form['template']
+
+            templateArch = request.form['templateArch']
+            templateRelease = request.form['templateRelease']
+
             command = request.form['command']
+
+            if templateArch:
+                command += ' --arch=%s' % templateArch
+            if templateRelease:
+                command += ' --release=%s' % templateRelease
+
             if re.match('^(?!^containers$)|[a-zA-Z0-9_-]+$', name):
                 storage_method = request.form['backingstore']
 
@@ -769,6 +781,12 @@ def refresh_cpu_containers(name=None):
 def _get_container_help(name=None):
     if 'logged_in' in session:
         return jsonify({'help': lwp.get_template_help(name)})
+
+
+@app.route('/_get_template_options_<name>')
+def _get_template_options(name=None):
+    if 'logged_in' in session:
+        return jsonify(lwp.get_template_options(name))
 
 
 @app.route('/_check_version')
