@@ -759,7 +759,7 @@ def refresh_cpu_containers(name=None):
                 })
             return jsonify(data=containers)
         elif name == 'host':
-            return jsonify(lwp.host_cpu_percent())
+            return lwp.host_cpu_percent()
         return jsonify({
             'cpu': lwp.container_cpu_percent(name),
         })
