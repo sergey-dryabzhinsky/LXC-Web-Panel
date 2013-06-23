@@ -302,6 +302,7 @@
 
 			$(function() {
 				refresh();
+				refreshMedium();
 				refreshLong();
 				check_version();
 				{% if session.su == 'Yes' and containers == [] %}$('#createCT').modal('show');{% endif %}
