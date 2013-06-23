@@ -266,9 +266,9 @@
 			function check_version(){
                 updateIndicatorFadeIn();
 				$.getJSON($SCRIPT_ROOT + '/_check_version', function(data) {
-                    var $version = $('#version');
+                    var $version = $('#vernumber');
 					if (data.latest > data.current) {
-						$('#vernumber').text(data.latest);
+						$version.text(data.latest);
 						$version.parent('small.hide').fadeIn().animate({"left": "-=25px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=25px"}, 65).fadeTo(5000, 0.5);
 						$version.parent('small.hide').hover(
                             function() {
@@ -278,7 +278,7 @@
 							    $(this).fadeTo(400, 0.5);
 						    });
 					} else {
-						$('#vernumber').text(data.current);
+						$version.text(data.current);
                     }
                     updateIndicatorFadeOut();
 				});
