@@ -269,13 +269,14 @@
                     var $version = $('#version');
 					if (data.latest > data.current) {
 						$('#vernumber').text(data.latest);
-						$version.fadeIn().animate({"left": "-=25px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=25px"}, 65).fadeTo(5000, 0.5);
-						$version.hover(function() {
-							$(this).fadeTo(400, 1);
-						},
-						function() {
-							$(this).fadeTo(400, 0.5);
-						});
+						$version.parent('small.hide').fadeIn().animate({"left": "-=25px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=25px"}, 65).fadeTo(5000, 0.5);
+						$version.parent('small.hide').hover(
+                            function() {
+							    $(this).fadeTo(400, 1);
+						    },
+						    function() {
+							    $(this).fadeTo(400, 0.5);
+						    });
 					} else {
 						$('#vernumber').text(data.current);
                     }
