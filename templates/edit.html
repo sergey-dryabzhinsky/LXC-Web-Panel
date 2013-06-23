@@ -76,7 +76,7 @@
 					<div class="control-group">
 						<label class="control-label" for="inputIPaddress">IP address</label>
 						<div class="controls">
-							<input pattern="(^25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?$)|(^Undefined$)" type="text" id="inputIPadress" name="ipaddress" value="{{ settings.ipv4 }}" placeholder="{{ settings.ipv4_hint }}">
+							<input pattern="(^25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|[12]?[0-9]))?$|(^Undefined$)" type="text" id="inputIPadress" name="ipaddress" value="{{ settings.ipv4 }}" placeholder="{{ settings.ipv4_hint }}">
 						</div>
 					</div>
 				</div>
@@ -110,7 +110,7 @@
 				<div class="control-group">
 					<label class="control-label" for="inputCPUShares">CPU Shares **</label>
 					<div class="controls">
-						<input pattern="(^25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|[12]?[0-9]))?$|(^Undefined$)" type="text" id="inputIPadress" name="ipaddress" value="{{ settings.ipv4 }}" placeholder="Undefined">
+						<input pattern="[0-9]+" type="number" id="inputCPUShares" name="cpushares" min="16" step="2" value="{{ settings.shares }}" placeholder="1024">
 					</div>
 				</div>
 
