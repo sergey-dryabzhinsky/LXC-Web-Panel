@@ -172,7 +172,7 @@ def edit(container=None):
                 if form['memlimit'] != cfg['memlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.limit_in_bytes', form['memlimit'], container=container)
                     if info["state"].lower() != "stopped":
-                        lxc.cgroup(container, 'lxc.cgroup.memory.limit_in_bytes', form['memlimit']*1024*1024)
+                        lxc.cgroup(container, 'lxc.cgroup.memory.limit_in_bytes', int(form['memlimit'])*1024*1024)
                     flash(u'Memory limit updated for %s!' % container, 'success')
 
             if form['swlimit'] != cfg['swlimit'] and form['swlimit'].isdigit() and int(form['swlimit']) <= int(host_memory['total'] * 2):
@@ -188,7 +188,7 @@ def edit(container=None):
                 elif form['swlimit'] != cfg['swlimit'] and form['memlimit'] <= form['swlimit']:
                     lwp.push_config_value('lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit'], container=container)
                     if info["state"].lower() != "stopped":
-                        lxc.cgroup(container, 'lxc.cgroup.memory.memsw.limit_in_bytes', form['swlimit']*1024*1024)
+                        lxc.cgroup(container, 'lxc.cgroup.memory.memsw.limit_in_bytes', int(form['swlimit'])*1024*1024)
                     flash(u'Swap limit updated for %s!' % container, 'success')
 
             if ( not form['cpus'] and form['cpus'] != cfg['cpus'] ) or ( form['cpus'] != cfg['cpus'] and re.match('^[0-9,-]+$', form['cpus']) ):
