@@ -150,6 +150,7 @@
                     <strong>Disk usage :</strong> <span class="label label-success">updating...</span>
                     </li>{% endif %}
 				<li><strong>Arch :</strong> {{ settings.arch }}</li>
+                {% endif %}
 			</ul>
 		</div>
 {% endblock %}
@@ -177,16 +178,14 @@
                 }
 
                 function percent_color(value){
-                    if(value != 0) {
-                        // 80% - ok
-                        if ('0' <= value && value < 80)
-                            return 'success';
-                        // 90% - not ok
-                        else if (80 <= value && value < 90)
-                            return 'warning';
-                        else
-                            return 'important';
-                    }
+                    // 80% - ok
+                    if ('0' <= value && value < 80)
+                        return 'success';
+                    // 90% - not ok
+                    else if (80 <= value && value < 90)
+                        return 'warning';
+                    else
+                        return 'important';
                 }
 
 
