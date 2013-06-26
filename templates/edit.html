@@ -145,12 +145,10 @@
 				{% if infos.cpu %}<li id="cpu_{{ container }}">
                     <strong>CPU :</strong> <span class="label label-success">updating...</span>
                     </li>{% endif %}
-                {% endif %}
 				{% if infos.memusg %}<li id="{{ container }}"><strong>Mem. usage :</strong> {{ render_memory_wrapper(infos.memusg, infos.max_memusg) }}</li>{% endif %}
 				{% if infos.diskusg.total %}<li id="disk_{{ container }}">
                     <strong>Disk usage :</strong> <span class="label label-success">updating...</span>
                     </li>{% endif %}
-                {% endif %}
 				<li><strong>Arch :</strong> {{ settings.arch }}</li>
 			</ul>
 		</div>

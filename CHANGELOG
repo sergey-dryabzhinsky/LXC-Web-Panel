@@ -1,6 +1,8 @@
-## Version 0.2 beta
-## 2013-04-30
+## Version 0.2.5
+## 2013-06-26
 
++ Show CPU utilization inside container
++ Allow IP address in CIDR notation
 + Instant push memory and CPU options to cgroup values
 + Added partition option in the config file, you can choose which partition you want to monitor in the overview
 + If there is no container, the panel will display the modal "Create CT"
