@@ -383,14 +383,16 @@ def get_container_settings(name):
     try:
         value = config.get('DEFAULT', cgroup['memlimit'])
         cfg['memlimit'] = re.sub(r'[a-zA-Z]', '', config.get('DEFAULT', cgroup['memlimit']))
-        if value.find("M") == -1:
+        if value.find("M") == -1 and value.isdigit():
+            cfg['memlimit'] = int(cfg['memlimit'])
             cfg['memlimit'] /= 1024*1024
     except ConfigParser.NoOptionError:
         cfg['memlimit'] = ''
     try:
         value = config.get('DEFAULT', cgroup['swlimit'])
         cfg['swlimit'] = re.sub(r'[a-zA-Z]', '', config.get('DEFAULT', cgroup['swlimit']))
-        if value.find("M") == -1:
+        if value.find("M") == -1 and value.isdigit():
+            cfg['swlimit'] = int(cfg['swlimit'])
             cfg['swlimit'] /= 1024*1024
     except ConfigParser.NoOptionError:
         cfg['swlimit'] = ''
