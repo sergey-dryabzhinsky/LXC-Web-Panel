@@ -381,11 +381,17 @@ def get_container_settings(name):
         cfg['ipv4'] = real_ipv4_container(name)
         cfg['ipv4_real'] = True
     try:
+        value = config.get('DEFAULT', cgroup['memlimit'])
         cfg['memlimit'] = re.sub(r'[a-zA-Z]', '', config.get('DEFAULT', cgroup['memlimit']))
+        if value.find("M") == -1:
+            cfg['memlimit'] /= 1024*1024
     except ConfigParser.NoOptionError:
         cfg['memlimit'] = ''
     try:
+        value = config.get('DEFAULT', cgroup['swlimit'])
         cfg['swlimit'] = re.sub(r'[a-zA-Z]', '', config.get('DEFAULT', cgroup['swlimit']))
+        if value.find("M") == -1:
+            cfg['swlimit'] /= 1024*1024
     except ConfigParser.NoOptionError:
         cfg['swlimit'] = ''
     try:
