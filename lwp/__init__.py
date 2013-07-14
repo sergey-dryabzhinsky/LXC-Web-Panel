@@ -162,7 +162,7 @@ def container_cpu_percent_cgroup(name):
     if not os.path.isfile(cont_usage_file):
         return '-1'
 
-    lxc_usage_file = "/sys/fs/cgroup/cpuacct/lxc/cpuacct.usage" % name
+    lxc_usage_file = "/sys/fs/cgroup/cpuacct/lxc/cpuacct.usage"
     if not os.path.isfile(lxc_usage_file):
         return '-1'
 
