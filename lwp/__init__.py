@@ -476,7 +476,7 @@ def push_config_value(key, value, container=None):
         if not value:
             config.remove_option('DEFAULT', key)
         elif key == cgroup['memlimit'] or key == cgroup['swlimit'] and value != False:
-            config.set('DEFAULT', key, '%sM' % value)
+            config.set('DEFAULT', key, '%d' % (int(value)*1024*1024))
         else:
             config.set('DEFAULT', key, value)
 
