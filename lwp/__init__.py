@@ -151,6 +151,33 @@ def container_cpu_percent(name):
         return '0'
     return out
 
+def container_cpu_percent_cgroup(name):
+    '''
+    returns CPU usage in percent
+    '''
+    if name in stopped():
+        return '0'
+
+    cont_usage_file = "/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage" % name
+    if not os.path.isfile(cont_usage_file):
+        return '-1'
+
+    lxc_usage_file = "/sys/fs/cgroup/cpuacct/lxc/cpuacct.usage" % name
+    if not os.path.isfile(lxc_usage_file):
+        return '-1'
+
+    f = open(cont_usage_file, 'r')
+    line = f.readline().strip()
+    cont_usage_ns = float(line)
+    f.close()
+
+    f = open(lxc_usage_file, 'r')
+    line = f.readline().strip()
+    lxc_usage_ns = float(line)
+    f.close()
+    percent = 100 * cont_usage_ns / lxc_usage_ns
+    return str('%.1f' % percent)
+
 
 def get_template_help(name):
     cmd = ["lxc-create -t %s -h" % name]
