@@ -767,13 +767,13 @@ def refresh_cpu_containers(name=None):
                 container = container.replace(' (auto)', '')
                 containers.append({
                     'name': container,
-                    'cpu': lwp.container_cpu_percent(container),
+                    'cpu': lwp.container_cpu_percent_cgroup(container),
                 })
             return jsonify(data=containers)
         elif name == 'host':
             return lwp.host_cpu_percent()
         return jsonify({
-            'cpu': lwp.container_cpu_percent(name),
+            'cpu': lwp.container_cpu_percent_cgroup(name),
         })
 
 
