@@ -162,20 +162,19 @@ def container_cpu_percent_cgroup(name):
     if not os.path.isfile(cont_usage_file):
         return '-1'
 
-    lxc_usage_file = "/sys/fs/cgroup/cpuacct/lxc/cpuacct.usage"
-    if not os.path.isfile(lxc_usage_file):
-        return '-1'
+    f = open(cont_usage_file, 'r')
+    line = f.readline().strip()
+    prev_cont_usage_ns = float(line) * 10**-9
+    f.close()
+
+    time.sleep(0.1)
 
     f = open(cont_usage_file, 'r')
     line = f.readline().strip()
-    cont_usage_ns = float(line)
+    current_cont_usage_ns = float(line) * 10**-9
     f.close()
 
-    f = open(lxc_usage_file, 'r')
-    line = f.readline().strip()
-    lxc_usage_ns = float(line)
-    f.close()
-    percent = 100 * cont_usage_ns / lxc_usage_ns
+    percent = 100 * (current_cont_usage_ns - prev_cont_usage_ns) / 0.1
     return str('%.1f' % percent)
 
 
