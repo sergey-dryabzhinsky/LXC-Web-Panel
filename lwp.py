@@ -429,7 +429,7 @@ def action():
                     if lxc.shutdown(name) == 0:
                         flash(u'Container %s shutdown initiated.' % name, 'success')
                     else:
-                        flash(u'Unable to stop %s!' % name, 'error')
+                        flash(u'Unable to shutdown %s!' % name, 'error')
                 except lxc.ContainerNotRunning:
                     flash(u'Container %s is already stopped!' % name, 'error')
             elif action == 'freeze':
