@@ -92,6 +92,7 @@ def ls_auto():
         prio_list[ name ] = prio
     return prio_list
 
+
 def memory_usage(name):
     '''
     returns memory usage in MB
@@ -108,6 +109,26 @@ def memory_usage(name):
     return int(out[0])/1024/1024
 
 
+def memory_usage_cgroup(name):
+    '''
+    returns memory usage in MB
+    use cgroup sys fs files
+    '''
+    if not exists(name):
+        raise ContainerDoesntExists("The container (%s) does not exist!" % name)
+    if name in stopped():
+        return 0
+
+    cont_usage_file = "/sys/fs/cgroup/memory/lxc/%s/memory.usage_in_bytes" % name
+    if not os.path.isfile(cont_usage_file):
+        return 0
+
+    f = open(cont_usage_file, 'r')
+    usage = f.readline().strip()
+    f.close()
+
+    return int(usage)/1024/1024
+
 
 def max_memory_usage(name):
     if not exists(name):
@@ -121,6 +142,31 @@ def max_memory_usage(name):
         return 0
     host = host_memory_usage()
     limit = int(out[0])/1024/1024
+    if limit > host["total"]:
+        limit = host["total"]
+    return limit
+
+
+def max_memory_usage_cgroup(name):
+    '''
+    returns memory usage in MB
+    use cgroup sys fs files
+    '''
+    if not exists(name):
+        raise ContainerDoesntExists("The container (%s) does not exist!" % name)
+    if name in stopped():
+        return 0
+
+    cont_usage_file = "/sys/fs/cgroup/memory/lxc/%s/memory.limit_in_bytes" % name
+    if not os.path.isfile(cont_usage_file):
+        return 0
+
+    f = open(cont_usage_file, 'r')
+    usage = f.readline().strip()
+    f.close()
+
+    host = host_memory_usage()
+    limit = int(usage)/1024/1024
     if limit > host["total"]:
         limit = host["total"]
     return limit

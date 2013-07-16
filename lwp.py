@@ -69,8 +69,8 @@ def home():
                 item = {
                     'name': container,
                     'cpu': 0,
-                    'memusg': lwp.memory_usage(container),
-                    'max_memusg': lwp.max_memory_usage(container),
+                    'memusg': lwp.memory_usage_cgroup(container),
+                    'max_memusg': lwp.max_memory_usage_cgroup(container),
                     'settings': lwp.get_container_settings(container)
                 }
                 containers_by_status.append(item)
@@ -725,15 +725,15 @@ def refresh_memory_containers(name=None):
                 container = container.replace(' (auto)', '')
                 containers.append({
                     'name': container,
-                    'memusg': lwp.memory_usage(container),
-                    'max_memusg': lwp.max_memory_usage(container)
+                    'memusg': lwp.memory_usage_cgroup(container),
+                    'max_memusg': lwp.max_memory_usage_cgroup(container)
                 })
             return jsonify(data=containers)
         elif name == 'host':
             return jsonify(lwp.host_memory_usage())
         return jsonify({
-            'memusg': lwp.memory_usage(name),
-            'max_memusg': lwp.max_memory_usage(name)
+            'memusg': lwp.memory_usage_cgroup(name),
+            'max_memusg': lwp.max_memory_usage_cgroup(name)
         })
 
 
