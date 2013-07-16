@@ -120,14 +120,20 @@ def listx():
     frozen = []
     running = []
 
-    for container in ls():
-        state = info(container)['state']
-        if state == 'RUNNING':
-            running.append(container)
-        elif state == 'FROZEN':
-            frozen.append(container)
-        elif state == 'STOPPED':
-            stopped.append(container)
+    output = _run('lxc-ls --fancy --fancy-format name,state', output=True)
+
+    if output:
+        output = output.splitlines()[2:]
+
+        for line in output:
+            container, state = line.split()
+
+            if state == 'RUNNING':
+                running.append(container)
+            elif state == 'FROZEN':
+                frozen.append(container)
+            elif state == 'STOPPED':
+                stopped.append(container)
 
     return {'RUNNING': running,
             'FROZEN': frozen,
