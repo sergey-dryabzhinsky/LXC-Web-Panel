@@ -178,6 +178,69 @@ def container_cpu_percent_cgroup(name):
     return str('%.1f' % percent)
 
 
+def containers_cpu_percent_cgroup(containers):
+    '''
+    returns CPU usage in percent for all cantainers
+    '''
+
+    prev_usage = {}
+
+    result = []
+
+    for name in containers:
+        name = name.replace(' (auto)', '')
+        if name in stopped():
+            prev_usage[ name ] = (0, time.time(),)
+            continue
+
+        cont_usage_file = "/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage" % name
+        if not os.path.isfile(cont_usage_file):
+            prev_usage[ name ] = (0, time.time(),)
+            continue
+
+        f = open(cont_usage_file, 'r')
+        line = f.readline().strip()
+        prev_usage[ name ] = (float(line) * 10**-9, time.time(),)
+        f.close()
+
+    time.sleep(0.1)
+
+    for name in containers:
+        name = name.replace(' (auto)', '')
+        if name in stopped():
+            result.append({
+                "name": name,
+                "cpu": "0"
+            })
+            continue
+
+        cont_usage_file = "/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage" % name
+        if not os.path.isfile(cont_usage_file):
+            result.append({
+                "name": name,
+                "cpu": "0"
+            })
+            continue
+
+        f = open(cont_usage_file, 'r')
+        line = f.readline().strip()
+        current_usage_ns = float(line) * 10**-9
+        f.close()
+
+        current_time = time.time()
+
+        prev_usage_ns, prev_time = prev_usage[ name ]
+
+        percent = 100 * (current_usage_ns - prev_usage_ns) / (current_time - prev_time)
+
+        result.append({
+            "name": name,
+            "cpu": "%0.1f" % percent
+        })
+
+    return result
+
+
 def get_template_help(name):
     cmd = ["lxc-create -t %s -h" % name]
     try:

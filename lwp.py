@@ -762,13 +762,7 @@ def refresh_cpu_containers(name=None):
     if 'logged_in' in session:
         if name == 'containers':
             containers_running = lxc.running()
-            containers = []
-            for container in containers_running:
-                container = container.replace(' (auto)', '')
-                containers.append({
-                    'name': container,
-                    'cpu': lwp.container_cpu_percent_cgroup(container),
-                })
+            containers = lwp.containers_cpu_percent_cgroup(containers_running)
             return jsonify(data=containers)
         elif name == 'host':
             return lwp.host_cpu_percent()
