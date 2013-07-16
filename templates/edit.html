@@ -28,7 +28,7 @@
 					<label class="control-label" for="inputAutostart">Start at boot</label>
 					<div class="controls">
 						<div class="switch" data-on-label="<i class='icon-ok icon-white'></i>" data-off-label="<i class='icon-remove icon-white'></i>" data-on="success" data-off="danger">
-							<input type="checkbox" name="autostart" value="True" {% if settings.auto %}checked {% endif %}/>
+							<input type="checkbox" id="inputAutostart" name="autostart" value="True" {% if settings.auto %}checked {% endif %}/>
 						</div>
 					</div>
 				</div>
@@ -36,7 +36,7 @@
                 <div class="control-group">
                     <label class="control-label" for="inputPriority">Boot priority **</label>
                     <div class="controls">
-                        <input pattern="\d+" type="text" name="priority" value="{{ settings.priority }}" placeholder="Undefined">
+                        <input pattern="\d+" type="text" id="inputPriority" name="priority" value="{{ settings.priority }}" placeholder="Undefined">
                     </div>
                 </div>
 
@@ -76,7 +76,7 @@
 					<div class="control-group">
 						<label class="control-label" for="inputIPaddress">IP address</label>
 						<div class="controls">
-							<input pattern="(^25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|[12]?[0-9]))?$|(^Undefined$)" type="text" id="inputIPadress" name="ipaddress" value="{{ settings.ipv4 }}" placeholder="{{ settings.ipv4_hint }}">
+							<input pattern="(^25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|[12]?[0-9]))?$|(^Undefined$)" type="text" id="inputIPaddress" name="ipaddress" value="{{ settings.ipv4 }}" placeholder="{{ settings.ipv4_hint }}">
 						</div>
 					</div>
 				</div>
@@ -84,18 +84,18 @@
 				<hr>
 
 				<div class="control-group form-inline">
-					<label class="control-label" for="sliderMemlimit">Memory limit *</label>
+					<label class="control-label" for="inputMemlimit">Memory limit *</label>
 					<div class="controls">
-						<input class="fix-height" pattern="[0-9]+" type="range" id="sliderMemlimit" name="memlimit" min="16" max="{{ host_memory.total }}" step="2" value="{% if settings.memlimit %}{{ settings.memlimit }}{% else %}{{ host_memory.total }}{% endif %}" onChange="updateMemInput('inputMemlimit', this.value, {{ host_memory.total }});">		
-						<input pattern="[0-9]+" class="input-mini{% if not settings.memlimit %} hide{% endif %}" id="inputMemlimit" type="number" min="16" step="2" max="{{ host_memory.total }}" value="{% if settings.memlimit %}{{ settings.memlimit }}{% endif %}" onChange="updateMemSlider('sliderMemlimit', this.value);"><span class="help-inline fix-height">{% if settings.memlimit %}MB{% else %}Unlimited{% endif %}</span>
+						<input class="fix-height" pattern="[0-9]+" type="range" id="sliderMemlimit" name="memlimit" min="16" max="{{ host_memory.total }}" step="2" value="{% if settings.memlimit %}{{ settings.memlimit }}{% else %}{{ host_memory.total }}{% endif %}" data-total="{{ host_memory.total }}">
+						<input pattern="[0-9]+" class="input-mini{% if not settings.memlimit %} hide{% endif %}" id="inputMemlimit" type="number" min="16" step="2" max="{{ host_memory.total }}" value="{% if settings.memlimit %}{{ settings.memlimit }}{% endif %}"><span class="help-inline fix-height">{% if settings.memlimit %}MB{% else %}Unlimited{% endif %}</span>
 					</div>
 				</div>
 
 				<div class="control-group">
 					<label class="control-label" for="inputSwlimit">Memory + Swap limit *</label>
 					<div class="controls">
-						<input class="fix-height" pattern="[0-9]+" type="range" id="sliderSwlimit" name="swlimit" min="32" max="{{ host_memory.total * 2 }}" step="2" value="{% if settings.swlimit %}{{ settings.swlimit }}{% else %}{{ host_memory.total * 2 }}{% endif %}" onChange="updateMemInput('inputSwlimit', this.value, {{ host_memory.total * 2 }});">
-						<input pattern="[0-9]+" class="input-mini{% if not settings.swlimit %} hide{% endif %}" id="inputSwlimit" type="number" min="32" step="2" max="{{ host_memory.total + host_memory.swap }}" value="{% if settings.swlimit %}{{ settings.swlimit }}{% endif %}" onChange="updateMemSlider('sliderSwlimit', this.value);"><span class="help-inline fix-height">{% if settings.swlimit %}MB{% else %}Unlimited{% endif %}</span>
+						<input class="fix-height" pattern="[0-9]+" type="range" id="sliderSwlimit" name="swlimit" min="32" max="{{ host_memory.total * 2 }}" step="2" value="{% if settings.swlimit %}{{ settings.swlimit }}{% else %}{{ host_memory.total * 2 }}{% endif %}" data-total="{{ host_memory.total * 2 }}">
+						<input pattern="[0-9]+" class="input-mini{% if not settings.swlimit %} hide{% endif %}" id="inputSwlimit" type="number" min="32" step="2" max="{{ host_memory.total + host_memory.swap }}" value="{% if settings.swlimit %}{{ settings.swlimit }}{% endif %}"><span class="help-inline fix-height">{% if settings.swlimit %}MB{% else %}Unlimited{% endif %}</span>
 					</div>
 				</div>
 
@@ -161,104 +161,17 @@
 {%- endmacro %}
 
 {% block script %}
-		<script src="/static/js/bootstrapSwitch.js"></script>
-		<script type="text/javascript">
-			{% if infos['status'] != 'STOPPED' %}
-                function memory_color(value, max_value){
-                    if(value != 0) {
-                        // 80% - ok
-                        if ('0' <= value && value < max_value*0.8)
-                            return 'success';
-                        // 90% - not ok
-                        else if (max_value*0.8 <= value && value < max_value*0.9)
-                            return 'warning';
-                        else
-                            return 'important';
-                    }
-                }
+    <script src="/static/js/bootstrapSwitch.js"></script>
+    <script src="/static/js/colors.js"></script>
+    <script src="/static/js/update-indicator.js"></script>
+    <script src="/static/js/edit.js"></script>
+    <script type="text/javascript">
 
-                function percent_color(value){
-                    // 80% - ok
-                    if ('0' <= value && value < 80)
-                        return 'success';
-                    // 90% - not ok
-                    else if (80 <= value && value < 90)
-                        return 'warning';
-                    else
-                        return 'important';
-                }
+LWP.UI.EditPage.init({
+    status: '{{ infos.status }}',
+    container: '{{ container }}',
+    scriptRoot: $SCRIPT_ROOT
+});
 
-
-				function refreshMemory(container){
-					$.getJSON($SCRIPT_ROOT + '/_refresh_memory_' + container, function(data) {
-						var el = $('#'+container+' span');
-						el.text(data.memusg+' MB');
-						el[0].className = el[0].className.replace(
-                                /label\-(success|warning|important)/g,
-                                'label-'+memory_color(data.memusg, data.max_memusg));
-					});
-				}
-
-                function refreshDisk(container){
-                    $.getJSON($SCRIPT_ROOT + '/_refresh_disk_'+container, function(data) {
-                        var el = $('#disk_'+container+' span');
-                        el.text(data.diskusg.used);
-                        el[0].className = el[0].className.replace(
-                                /label\-(success|warning|important)/g,
-                                'label-'+percent_color(data.diskusg.percent));
-                    });
-                }
-
-                function refreshCPU(container){
-                    $.getJSON($SCRIPT_ROOT + '/_refresh_cpu_'+container, function(data) {
-                        var el = $('#cpu_'+container+' span');
-                        el.text(data.cpu + ' %');
-                        el[0].className = el[0].className.replace(
-                                /label\-(success|warning|important)/g,
-                                'label-'+percent_color(data.cpu));
-                    });
-                }
-
-                function refresh() {
-                    refreshMemory("{{ container }}");
-                    refreshCPU("{{ container }}");
-                }
-
-                function refreshLong() {
-                    refreshDisk("{{ container }}");
-                }
-
-                $(function() {
-                    refresh();
-                    refreshLong();
-                    window.setInterval('refresh()', 15*1000);
-                    window.setInterval('refreshLong()', 300*1000);
-                });
-			{% endif %}
-
-			// Network flags
-			var network = $("#network");
-			$(".switch-network-flags").on('switch-change', function(e, data){
-				if(data.value){
-					$(data.el).val('up');
-					network.delay(350).slideDown();
-				}
-				else{
-					$(data.el).val('down');
-					network.delay(350).slideUp();
-				}
-			});
-
-            function updateMemInput(elem, value, mem_total){
-                if (value < mem_total) {
-                    $('#' + elem).val(value).show().next('.help-inline').text('MB');
-                } else {
-					$('#' + elem).val(mem_total).hide().next('.help-inline').text('Unlimited');
-				}
-			}
-
-            function updateMemSlider(elem, value){
-                $('#' + elem).val(value);
-			}
 		</script>
 {% endblock %}
