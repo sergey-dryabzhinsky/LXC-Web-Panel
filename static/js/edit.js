@@ -84,14 +84,14 @@ if (!window.LWP.UI.EditPage) {
                     self.updateMemInput('inputMemlimit', $(this).val(), $(this).data('total'));
                 });
                 $('#inputMemlimit').change(function(){
-                    self.updateMemInput('sliderMemlimit', $(this).val());
+                    self.updateMemSlider('sliderMemlimit', $(this).val());
                 });
 
                 $('#sliderSwlimit').change(function(){
                     self.updateMemInput('inputSwlimit', $(this).val(), $(this).data('total'));
                 });
                 $('#inputSwlimit').change(function(){
-                    self.updateMemInput('sliderSwlimit', $(this).val());
+                    self.updateMemSlider('sliderSwlimit', $(this).val());
                 });
 
                 // Network flags
