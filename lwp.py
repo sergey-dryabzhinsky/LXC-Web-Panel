@@ -68,9 +68,9 @@ def home():
             for container in listx[status]:
                 item = {
                     'name': container,
-                    'cpu': lwp.container_cpu_percent(container),
-                    'memusg': lwp.memory_usage(container),
-                    'max_memusg': lwp.max_memory_usage(container),
+                    'cpu': 0,
+                    'memusg': lwp.memory_usage_cgroup(container),
+                    'max_memusg': lwp.max_memory_usage_cgroup(container),
                     'settings': lwp.get_container_settings(container)
                 }
                 containers_by_status.append(item)
@@ -725,15 +725,15 @@ def refresh_memory_containers(name=None):
                 container = container.replace(' (auto)', '')
                 containers.append({
                     'name': container,
-                    'memusg': lwp.memory_usage(container),
-                    'max_memusg': lwp.max_memory_usage(container)
+                    'memusg': lwp.memory_usage_cgroup(container),
+                    'max_memusg': lwp.max_memory_usage_cgroup(container)
                 })
             return jsonify(data=containers)
         elif name == 'host':
             return jsonify(lwp.host_memory_usage())
         return jsonify({
-            'memusg': lwp.memory_usage(name),
-            'max_memusg': lwp.max_memory_usage(name)
+            'memusg': lwp.memory_usage_cgroup(name),
+            'max_memusg': lwp.max_memory_usage_cgroup(name)
         })
 
 
@@ -762,13 +762,7 @@ def refresh_cpu_containers(name=None):
     if 'logged_in' in session:
         if name == 'containers':
             containers_running = lxc.running()
-            containers = []
-            for container in containers_running:
-                container = container.replace(' (auto)', '')
-                containers.append({
-                    'name': container,
-                    'cpu': lwp.container_cpu_percent_cgroup(container),
-                })
+            containers = lwp.containers_cpu_percent_cgroup(containers_running)
             return jsonify(data=containers)
         elif name == 'host':
             return lwp.host_cpu_percent()

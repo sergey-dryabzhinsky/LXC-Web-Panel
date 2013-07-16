@@ -92,6 +92,7 @@ def ls_auto():
         prio_list[ name ] = prio
     return prio_list
 
+
 def memory_usage(name):
     '''
     returns memory usage in MB
@@ -108,6 +109,21 @@ def memory_usage(name):
     return int(out[0])/1024/1024
 
 
+def memory_usage_cgroup(name):
+    '''
+    returns memory usage in MB
+    use cgroup sys fs files
+    '''
+    cont_usage_file = "/sys/fs/cgroup/memory/lxc/%s/memory.usage_in_bytes" % name
+    if not os.path.isfile(cont_usage_file):
+        return 0
+
+    f = open(cont_usage_file, 'r')
+    usage = f.readline().strip()
+    f.close()
+
+    return int(usage)/1024/1024
+
 
 def max_memory_usage(name):
     if not exists(name):
@@ -121,6 +137,26 @@ def max_memory_usage(name):
         return 0
     host = host_memory_usage()
     limit = int(out[0])/1024/1024
+    if limit > host["total"]:
+        limit = host["total"]
+    return limit
+
+
+def max_memory_usage_cgroup(name):
+    '''
+    returns memory usage in MB
+    use cgroup sys fs files
+    '''
+    cont_usage_file = "/sys/fs/cgroup/memory/lxc/%s/memory.limit_in_bytes" % name
+    if not os.path.isfile(cont_usage_file):
+        return 0
+
+    f = open(cont_usage_file, 'r')
+    usage = f.readline().strip()
+    f.close()
+
+    host = host_memory_usage()
+    limit = int(usage)/1024/1024
     if limit > host["total"]:
         limit = host["total"]
     return limit
@@ -176,6 +212,69 @@ def container_cpu_percent_cgroup(name):
 
     percent = 100 * (current_cont_usage_ns - prev_cont_usage_ns) / 0.1
     return str('%.1f' % percent)
+
+
+def containers_cpu_percent_cgroup(containers):
+    '''
+    returns CPU usage in percent for all cantainers
+    '''
+
+    prev_usage = {}
+
+    result = []
+
+    for name in containers:
+        name = name.replace(' (auto)', '')
+        if name in stopped():
+            prev_usage[ name ] = (0, time.time(),)
+            continue
+
+        cont_usage_file = "/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage" % name
+        if not os.path.isfile(cont_usage_file):
+            prev_usage[ name ] = (0, time.time(),)
+            continue
+
+        f = open(cont_usage_file, 'r')
+        line = f.readline().strip()
+        prev_usage[ name ] = (float(line) * 10**-9, time.time(),)
+        f.close()
+
+    time.sleep(0.1)
+
+    for name in containers:
+        name = name.replace(' (auto)', '')
+        if name in stopped():
+            result.append({
+                "name": name,
+                "cpu": "0"
+            })
+            continue
+
+        cont_usage_file = "/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage" % name
+        if not os.path.isfile(cont_usage_file):
+            result.append({
+                "name": name,
+                "cpu": "0"
+            })
+            continue
+
+        f = open(cont_usage_file, 'r')
+        line = f.readline().strip()
+        current_usage_ns = float(line) * 10**-9
+        f.close()
+
+        current_time = time.time()
+
+        prev_usage_ns, prev_time = prev_usage[ name ]
+
+        percent = 100 * (current_usage_ns - prev_usage_ns) / (current_time - prev_time)
+
+        result.append({
+            "name": name,
+            "cpu": "%0.1f" % percent
+        })
+
+    return result
 
 
 def get_template_help(name):
