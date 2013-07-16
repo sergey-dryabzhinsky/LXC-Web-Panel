@@ -114,11 +114,6 @@ def memory_usage_cgroup(name):
     returns memory usage in MB
     use cgroup sys fs files
     '''
-    if not exists(name):
-        raise ContainerDoesntExists("The container (%s) does not exist!" % name)
-    if name in stopped():
-        return 0
-
     cont_usage_file = "/sys/fs/cgroup/memory/lxc/%s/memory.usage_in_bytes" % name
     if not os.path.isfile(cont_usage_file):
         return 0
@@ -152,11 +147,6 @@ def max_memory_usage_cgroup(name):
     returns memory usage in MB
     use cgroup sys fs files
     '''
-    if not exists(name):
-        raise ContainerDoesntExists("The container (%s) does not exist!" % name)
-    if name in stopped():
-        return 0
-
     cont_usage_file = "/sys/fs/cgroup/memory/lxc/%s/memory.limit_in_bytes" % name
     if not os.path.isfile(cont_usage_file):
         return 0
