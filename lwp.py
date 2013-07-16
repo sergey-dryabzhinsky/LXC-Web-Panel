@@ -68,7 +68,7 @@ def home():
             for container in listx[status]:
                 item = {
                     'name': container,
-                    'cpu': lwp.container_cpu_percent(container),
+                    'cpu': 0,
                     'memusg': lwp.memory_usage(container),
                     'max_memusg': lwp.max_memory_usage(container),
                     'settings': lwp.get_container_settings(container)
