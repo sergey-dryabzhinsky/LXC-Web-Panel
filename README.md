@@ -11,9 +11,7 @@ Visit http://lxc-webpanel.github.io/ for more informations
 Clone our repository
 > git clone https://github.io/lxc-webpanel/LXC-Web-Panel.git
 
-or
-
-> git clone https://github.io/user-fork-that-you-like/LXC-Web-Panel.git
+or other project fork and
 
 Install Flask
 > pip install flask==0.9
