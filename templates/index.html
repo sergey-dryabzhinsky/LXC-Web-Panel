@@ -60,6 +60,7 @@
 								<div class="btn-group">
 									{% set start_action = {'stopped':'start','frozen':'unfreeze'} %}
 									<a class="btn btn-small{% if status.status == 'running' %} disabled{% endif %}"{% if status.status == 'stopped' or status.status == 'frozen' %} href="{{ url_for('action', name=container.name, action=start_action[status.status], token=session.token) }}"{% endif %}><i class="icon-play"></i> Start</a>
+									<a class="btn btn-small{% if status.status == 'stopped' %} disabled{% endif %}"{% if status.status == 'running' or status.status == 'frozen' %} href="{{ url_for('action', name=container.name, action='shutdown', token=session.token) }}"{% endif %}><i class="icon-eject"></i> Shutdown</a>
 									<a class="btn btn-small{% if status.status == 'stopped' %} disabled{% endif %}"{% if status.status == 'running' or status.status == 'frozen' %} href="{{ url_for('action', name=container.name, action='stop', token=session.token) }}"{% endif %}><i class="icon-stop"></i> Stop</a>
 									<a class="btn btn-small{% if status.status == 'frozen' or status.status == 'stopped' %} disabled{% endif %}"{% if status.status == 'running' %} href="{{ url_for('action', name=container.name, action='freeze', token=session.token) }}"{% endif %}><i class="icon-pause"></i> Freeze</a>
 								</div>
