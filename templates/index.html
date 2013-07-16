@@ -132,7 +132,7 @@ LWP.UI.IndexPage.init({
     su: '{{ session.su }}',
     token: '{{ session.token }}',
     scriptRoot: $SCRIPT_ROOT,
-    containersCount: {{ len(containers) }}
+    containersCount: {{ containers|length }}
 });
 
 </script>

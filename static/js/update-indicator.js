@@ -2,11 +2,11 @@
  * Use one implementation of update indicator for all pages
  */
 
-if (!LWP) window.LWP = {};
-if (!LWP.UI) window.LWP.UI = {};
-if (!LWP.UI.UpdateIndicator) {
+if (!window.LWP) LWP = {};
+if (!window.LWP.UI) LWP.UI = {};
+if (!window.LWP.UI.UpdateIndicator) {
 
-    window.LWP.UI.UpdateIndicator = (function(){
+    LWP.UI.UpdateIndicator = (function(){
 
         var proto = function()
         {

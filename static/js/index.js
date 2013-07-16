@@ -8,10 +8,10 @@
  *
  */
 
-if (!LWP) window.LWP = {};
-if (!LWP.UI) window.LWP.UI = {};
-if (!LWP.UI.IndexPage) {
-    window.LWP.UI.IndexPage = (function(){
+if (!window.LWP) LWP = {};
+if (!window.LWP.UI) LWP.UI = {};
+if (!window.LWP.UI.IndexPage) {
+    LWP.UI.IndexPage = (function(){
 
         var proto = function()
         {
