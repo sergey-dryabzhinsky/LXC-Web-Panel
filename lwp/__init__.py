@@ -191,9 +191,6 @@ def container_cpu_percent_cgroup(name):
     '''
     returns CPU usage in percent
     '''
-    if name in stopped():
-        return '0'
-
     cont_usage_file = "/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage" % name
     if not os.path.isfile(cont_usage_file):
         return '-1'
@@ -225,9 +222,6 @@ def containers_cpu_percent_cgroup(containers):
 
     for name in containers:
         name = name.replace(' (auto)', '')
-        if name in stopped():
-            prev_usage[ name ] = (0, time.time(),)
-            continue
 
         cont_usage_file = "/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage" % name
         if not os.path.isfile(cont_usage_file):
@@ -243,12 +237,6 @@ def containers_cpu_percent_cgroup(containers):
 
     for name in containers:
         name = name.replace(' (auto)', '')
-        if name in stopped():
-            result.append({
-                "name": name,
-                "cpu": "0"
-            })
-            continue
 
         cont_usage_file = "/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage" % name
         if not os.path.isfile(cont_usage_file):
