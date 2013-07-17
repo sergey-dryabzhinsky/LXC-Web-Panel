@@ -437,8 +437,12 @@ def check_version(url=None):
     if not url:
         url = 'http://lxc-webpanel.github.com/version'
     latest = urllib2.urlopen(url).read()
-    return {'current': version_normalize(current),
-            'latest': version_normalize(latest)}
+    return {
+        'current': version_normalize(current),
+        'latest': version_normalize(latest),
+        'norm_current': version_normalize(current),
+        'norm_latest': version_normalize(latest)
+    }
 
 
 def get_net_settings():
