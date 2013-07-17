@@ -754,18 +754,27 @@ def refresh_disk_host():
     if 'logged_in' in session:
         return jsonify(lwp.host_disk_usage(partition=config.get('overview', 'partition')))
 
+
 @app.route('/_refresh_lvm_host')
 def refresh_lvm_host():
     if 'logged_in' in session:
         return jsonify(lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')))
 
+
 @app.route('/_refresh_memory_<name>')
 def refresh_memory_containers(name=None):
     if 'logged_in' in session:
         if name == 'containers':
-            containers_running = lxc.running()
+            listx = lxc.listx()
             containers = []
-            for container in containers_running:
+            for container in listx['RUNNING']:
+                container = container.replace(' (auto)', '')
+                containers.append({
+                    'name': container,
+                    'memusg': lwp.memory_usage_cgroup(container),
+                    'max_memusg': lwp.max_memory_usage_cgroup(container)
+                })
+            for container in listx['FROZEN']:
                 container = container.replace(' (auto)', '')
                 containers.append({
                     'name': container,

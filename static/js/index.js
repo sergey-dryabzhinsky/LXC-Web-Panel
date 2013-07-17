@@ -313,15 +313,17 @@ if (!window.LWP.UI.IndexPage) {
         {
             var self = this;
             this.refreshMemoryHost();
-            this.refreshMemoryContainers();
+            this.refreshCPUHost();
             // Slide by time to not cross with other requests.
             setTimeout(function(){
-                self.refreshCPUHost();
+                self.refreshMemoryContainers();
             }, 200);
             setTimeout(function(){
                 self.refreshCpuContainers();
             }, 400);
-            this.updateContainersStatus();
+            setTimeout(function(){
+                self.updateContainersStatus();
+            }, 600);
         };
 
         // Call every minute
