@@ -438,8 +438,8 @@ def check_version(url=None):
         url = 'http://lxc-webpanel.github.com/version'
     latest = urllib2.urlopen(url).read()
     return {
-        'current': version_normalize(current),
-        'latest': version_normalize(latest),
+        'current': current,
+        'latest': latest,
         'norm_current': version_normalize(current),
         'norm_latest': version_normalize(latest)
     }
