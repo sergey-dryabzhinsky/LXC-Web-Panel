@@ -64,7 +64,7 @@ if (!window.LWP.UI.IndexPage) {
 
 				setInterval(function(){
                     self.refreshFast();
-                }, 10*1000);
+                }, 15*1000);
 				setInterval(function(){
                     self.refreshMedium();
                 }, 60*1000);
