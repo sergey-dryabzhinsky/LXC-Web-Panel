@@ -136,10 +136,16 @@ if (!window.LWP.UI.IndexPage) {
             $.get(this.scriptRoot + '/_refresh_containers', function(data) {
                 $('#containers-placeholder').html(data);
                 self.loadedContainersList = true;
-                /*$(".destroy").on('click',function(e){
+
+                $(".destroy").on('click',function(e){
                     $(".destroy-link").attr('href',"/action?action=destroy&token={{ session.token }}&name="+ $(this).data('container-name'));
                     $('#destroy').modal('show');
-                });*/
+                });
+
+                self.refreshCpuContainers();
+                self.refreshMemoryContainers();
+                self.refreshDiskContainers();
+
             });
         };
 
