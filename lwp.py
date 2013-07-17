@@ -74,7 +74,9 @@ def about():
     about page
     '''
     if 'logged_in' in session:
-        return render_template('about.html', containers=lxc.ls(), version=lwp.check_version())
+        return render_template('about.html',
+                               containers=lxc.ls(),
+                               version=lwp.check_version(url=config.get('version', 'url')))
     return render_template('login.html')
 
 
@@ -839,7 +841,7 @@ def _get_template_options(name=None):
 @app.route('/_check_version')
 def check_version():
     if 'logged_in' in session:
-        return jsonify(lwp.check_version(config.get('version', 'url')))
+        return jsonify(lwp.check_version(url=config.get('version', 'url')))
 
 
 def hash_passwd(passwd):
