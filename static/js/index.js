@@ -281,7 +281,7 @@ if (!window.LWP.UI.IndexPage) {
             LWP.UI.UpdateIndicator.updateStart();
             $.getJSON(this.scriptRoot + '/_check_version', function(data) {
                 var $version = $('#vernumber');
-                if (data.latest > data.current) {
+                if (data.norm_latest > data.norm_current) {
                     $version.text(data.latest);
                     // Better blink
                     $version.parent('small.hide')

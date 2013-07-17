@@ -415,6 +415,17 @@ def get_templates_list():
     return sorted(templates)
 
 
+def version_normalize(version):
+    def normalize(v):
+        return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
+
+    s = 0.0
+    p = 6
+    for v in normalize(version):
+        s += (10**p) * v
+        p -= 3
+    return s
+
 def check_version(url=None):
     '''
     returns latest LWP version (dict with current and latest)
@@ -422,11 +433,16 @@ def check_version(url=None):
     f = open('version')
     current = f.read()
     f.close()
+
     if not url:
         url = 'http://lxc-webpanel.github.com/version'
     latest = urllib2.urlopen(url).read()
-    return {'current': current,
-            'latest': latest}
+    return {
+        'current': current,
+        'latest': latest,
+        'norm_current': version_normalize(current),
+        'norm_latest': version_normalize(latest)
+    }
 
 
 def get_net_settings():
