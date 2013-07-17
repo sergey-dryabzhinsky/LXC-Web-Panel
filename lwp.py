@@ -5,8 +5,8 @@ import subprocess
 import time
 import re
 import hashlib
-import signal
 import sqlite3
+import cPickle
 import os
 import ConfigParser
 
@@ -60,29 +60,8 @@ def home():
     home page function
     '''
     if 'logged_in' in session:
-        
-        listx = lxc.listx()
-        containers_all = []
-        for status in listx:
-            containers_by_status = []
-            for container in listx[status]:
-                item = {
-                    'name': container,
-                    'cpu': 0,
-                    'memusg': lwp.memory_usage_cgroup(container),
-                    'max_memusg': lwp.max_memory_usage_cgroup(container),
-                    'settings': lwp.get_container_settings(container)
-                }
-                containers_by_status.append(item)
-
-            containers_all.append({
-                        'status' : status.lower(),
-                        'containers' : containers_by_status
-                })
-
         return render_template('index.html',
                                containers=lxc.ls(),
-                               containers_all=containers_all,
                                dist=lwp.check_ubuntu(),
                                lvm=lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')),
                                templates=lwp.get_templates_list())
@@ -707,6 +686,63 @@ def logout():
     return redirect(url_for('login'))
 
 
+@app.route('/_refresh_containers')
+def refresh_containers():
+    if 'logged_in' in session:
+        listx = lxc.listx()
+        containers_all = []
+
+        for status in ['RUNNING', 'FROZEN', 'STOPPED']:
+            containers_by_status = []
+
+            for container in listx[status]:
+
+                item = {
+                    'name': container,
+                    'settings': lwp.get_container_settings(container)
+                }
+
+                h = hashlib.md5()
+                h.update(status)
+                h.update(cPickle.dumps(item['settings']))
+
+                item['hash'] = h.hexdigest()
+
+                containers_by_status.append(item)
+            containers_all.append({
+                    'status' : status,
+                    'containers' : containers_by_status
+                })
+
+        return render_template('containers.html', containers_all=containers_all)
+    return ''
+
+
+@app.route('/_update_containers')
+def update_containers():
+    if 'logged_in' in session:
+        listx = lxc.listx()
+
+        containers = []
+
+        for status in ['RUNNING', 'FROZEN', 'STOPPED']:
+            for container in listx[status]:
+
+                settings = lwp.get_container_settings(container)
+
+                h = hashlib.md5()
+                h.update(status)
+                h.update(cPickle.dumps(settings))
+
+                containers.append({
+                    "name": container,
+                    "hash": h.hexdigest()
+                })
+
+        return jsonify(data=containers)
+    return jsonify(data=[])
+
+
 @app.route('/_refresh_uptime_host')
 def refresh_uptime_host():
     if 'logged_in' in session:
@@ -718,18 +754,27 @@ def refresh_disk_host():
     if 'logged_in' in session:
         return jsonify(lwp.host_disk_usage(partition=config.get('overview', 'partition')))
 
+
 @app.route('/_refresh_lvm_host')
 def refresh_lvm_host():
     if 'logged_in' in session:
         return jsonify(lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')))
 
+
 @app.route('/_refresh_memory_<name>')
 def refresh_memory_containers(name=None):
     if 'logged_in' in session:
         if name == 'containers':
-            containers_running = lxc.running()
+            listx = lxc.listx()
             containers = []
-            for container in containers_running:
+            for container in listx['RUNNING']:
+                container = container.replace(' (auto)', '')
+                containers.append({
+                    'name': container,
+                    'memusg': lwp.memory_usage_cgroup(container),
+                    'max_memusg': lwp.max_memory_usage_cgroup(container)
+                })
+            for container in listx['FROZEN']:
                 container = container.replace(' (auto)', '')
                 containers.append({
                     'name': container,
@@ -771,7 +816,7 @@ def refresh_cpu_containers(name=None):
         if name == 'containers':
             containers_running = lxc.running()
             containers = lwp.containers_cpu_percent_cgroup(containers_running)
-            return jsonify(data=containers)
+            return jsonify(data=containers.values())
         elif name == 'host':
             return lwp.host_cpu_percent()
         return jsonify({

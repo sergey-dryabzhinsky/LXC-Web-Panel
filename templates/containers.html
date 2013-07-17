@@ -1,0 +1,55 @@
+{% set td = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
+{% set tr = {'RUNNING':'success','FROZEN':'info','STOPPED':'error'} %}
+{% set disabled = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
+
+<table id="containers-area" class="table table-bordered">
+    <thead>
+    </thead>
+    <tbody>
+    {% for status in containers_all %}
+        {% set container_status = status.status|upper %}
+        <tr>
+            <td colspan="7">
+                <h4><span class="label label-{{ td[container_status] }}">{{ status.status|capitalize }}</span></h4>
+            </td>
+        </tr>
+        <tr>
+            <th>Name</th>
+            <th>Hostname</th>
+            <th>IP Address</th>
+            <th>CPU usage</th>
+            <th>Mem. usage</th>
+            <th>Disk usage</th>
+            <th>Actions</th>
+        </tr>
+        {% for container in status.containers %}
+            <tr class="{{ tr[container_status] }}" data-hash="{{ container.hash }}" data-container="{{ container.name }}">
+                <td><a href="{{ url_for('edit',container=container.name) }}" title="Click to edit {{container.name}}">{{container.name}}</a></td>
+                <td>{{container.settings.utsname}}</td>
+                <td>{% if container.settings.flags == 'up' %}{% if container.settings.ipv4 != '' %}{{container.settings.ipv4}}{% else %}Undefined{% endif %}{% elif container.settings.flags == 'down' %}Link Down{% endif %}</td>
+                <td id="cpu_{{container.name}}">
+                    <span class="label label-success"></span>
+                </td>
+                <td id="mem_{{container.name}}">
+                    <span class="label label-success"></span>
+                </td>
+                <td id="disk_{{container.name}}">
+                    <span class="label label-success"></span>
+                </td>
+                <td>
+                    <div class="btn-toolbar" style="margin:8px 0;">
+                        <div class="btn-group">
+                            {% set start_action = {'STOPPED':'start','FROZEN':'unfreeze'} %}
+                            <a class="btn btn-small {% if container_status == 'RUNNING' %}disabled{% endif %}" {% if container_status == 'STOPPED' or container_status == 'FROZEN' %}href="{{ url_for('action', name=container.name, action=start_action[container_status], token=session.token) }}"{% endif %} title="Start"><i class="icon-play"></i></a>
+                            <a class="btn btn-small {% if container_status == 'FROZEN' or container_status == 'STOPPED' %}disabled{% endif %}" {% if container_status == 'RUNNING' %}href="{{ url_for('action', name=container.name, action='freeze', token=session.token) }}"{% endif %} title="Freeze"><i class="icon-pause"></i></a>
+                            <a class="btn btn-small {% if container_status == 'STOPPED' or container_status == 'FROZEN' %}disabled{% endif %}" {% if container_status == 'RUNNING' %}href="{{ url_for('action', name=container.name, action='shutdown', token=session.token) }}"{% endif %} title="Shutdown, nice and clean"><i class="icon-off"></i></a>
+                            <a class="btn btn-small {% if container_status == 'STOPPED' %}disabled{% endif %}" {% if container_status == 'RUNNING' or container_status == 'FROZEN' %}href="{{ url_for('action', name=container.name, action='stop', token=session.token) }}"{% endif %} title="Stop, kill container"><i class="icon-stop"></i></a>
+                        </div>
+                        {% if session.su == 'Yes' %}<a class="pull-right close destroy" data-container-name="{{container.name}}" style="margin-top:4px;"><i class="icon-remove-sign"></i></a>{% endif %}
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+    {% endfor %}
+    </tbody>
+</table>
