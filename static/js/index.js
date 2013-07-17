@@ -56,6 +56,7 @@ if (!window.LWP.UI.IndexPage) {
         {
             var self = this;
 			$(function() {
+                self.refreshContainerList();
 				self.refreshFast();
 				self.refreshMedium();
 				self.refreshLong();
