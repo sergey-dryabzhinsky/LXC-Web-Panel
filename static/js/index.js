@@ -18,7 +18,7 @@ if (!window.LWP.UI.IndexPage) {
             this.su = 'No';
             this.token = '';
             this.scriptRoot = '';
-            this.containersCount = 0;
+            this.loadedContainersList = false;
         };
 
         /**
@@ -27,7 +27,6 @@ if (!window.LWP.UI.IndexPage) {
          *      su: (string)            // 'Yes' / 'No'
          *      token: (string)
          *      scriptRoot: (string)
-         *      containersCount: (int)
          * }
          *
          * @param options
@@ -37,7 +36,6 @@ if (!window.LWP.UI.IndexPage) {
             this.su = options.su + '';                                  // convert to string
             this.token = options.token + '';                            // convert to string
             this.scriptRoot = options.scriptRoot + '';                  // convert to string
-            this.containersCount = parseInt(options.containersCount);   // convert to int
 
             this._initTimers();
             this._initEventListeners();
@@ -50,9 +48,6 @@ if (!window.LWP.UI.IndexPage) {
             $(function(){
                 if (self.su == 'Yes' && self.token) {
                     self.appendTemplateOptions();
-                    if (self.containersCount == 0) {
-                        $('#createCT').modal('show');
-                    }
                 }
             });
         };
@@ -61,6 +56,7 @@ if (!window.LWP.UI.IndexPage) {
         {
             var self = this;
 			$(function() {
+                self.refreshContainerList();
 				self.refreshFast();
 				self.refreshMedium();
 				self.refreshLong();
@@ -68,7 +64,7 @@ if (!window.LWP.UI.IndexPage) {
 
 				setInterval(function(){
                     self.refreshFast();
-                }, 10*1000);
+                }, 15*1000);
 				setInterval(function(){
                     self.refreshMedium();
                 }, 60*1000);
@@ -133,6 +129,48 @@ if (!window.LWP.UI.IndexPage) {
             }
         };
 
+        proto.prototype.refreshContainerList = function()
+        {
+            var self = this;
+            self.loadedContainersList = false;
+            $.get(this.scriptRoot + '/_refresh_containers', function(data) {
+                $('#containers-placeholder').html(data);
+                self.loadedContainersList = true;
+
+                $(".destroy").on('click',function(e){
+                    $(".destroy-link").attr('href',"/action?action=destroy&token={{ session.token }}&name="+ $(this).data('container-name'));
+                    $('#destroy').modal('show');
+                });
+
+                self.refreshCpuContainers();
+                self.refreshMemoryContainers();
+                self.refreshDiskContainers();
+
+            });
+        };
+
+        proto.prototype.updateContainersStatus = function()
+        {
+            if (!this.loadedContainersList) return;
+
+            var self = this;
+            var $table = $('table#containers-area');
+            $.get(this.scriptRoot + '/_update_containers', function(data) {
+                var reloadList = false;
+                $.each(data.data, function(idx, item){
+                    var $tr = $table.find('tr[data-container=' + item.name +']');
+                    if ($tr.length) {
+                        if ($tr.data('hash') != item.hash) {
+                            reloadList = true;
+                        }
+                    }
+                });
+                if (reloadList) {
+                    self.refreshContainerList();
+                }
+            });
+        };
+
         proto.prototype.refreshMemoryHost = function()
         {
             LWP.UI.UpdateIndicator.updateStart();
@@ -189,10 +227,12 @@ if (!window.LWP.UI.IndexPage) {
 
         proto.prototype.refreshMemoryContainers = function()
         {
+            if (!this.loadedContainersList) return;
+
             LWP.UI.UpdateIndicator.updateStart();
             $.getJSON(this.scriptRoot + '/_refresh_memory_containers', function(data) {
                 $.each(data.data, function(idx, item){
-                    var el = $('#'+item.name+' span');
+                    var el = $('#mem_'+item.name+' span');
                     el.text(item.memusg+' of '+item.max_memusg+' MB');
                     el[0].className = el[0].className.replace(
                             /label\-(success|warning|important|none)/g,
@@ -204,6 +244,8 @@ if (!window.LWP.UI.IndexPage) {
 
         proto.prototype.refreshDiskContainers = function()
         {
+            if (!this.loadedContainersList) return;
+
             LWP.UI.UpdateIndicator.updateStart();
             $.getJSON(this.scriptRoot + '/_refresh_disk_containers', function(data) {
                 $.each(data.data, function(idx, item){
@@ -219,6 +261,8 @@ if (!window.LWP.UI.IndexPage) {
 
 		proto.prototype.refreshCpuContainers = function()
         {
+            if (!this.loadedContainersList) return;
+
             LWP.UI.UpdateIndicator.updateStart();
             $.getJSON(this.scriptRoot + '/_refresh_cpu_containers', function(data) {
                 $.each(data.data, function(idx, item){
@@ -242,12 +286,12 @@ if (!window.LWP.UI.IndexPage) {
                     // Better blink
                     $version.parent('small.hide')
                         .fadeTo(100, 1)
-                        .fadeTo(500, 0.5)
-                        .fadeTo(500, 1)
-                        .fadeTo(500, 0.5)
-                        .fadeTo(500, 1)
-                        .fadeTo(500, 0.5)
-                        .fadeTo(500, 1)
+                        .fadeTo(400, 0.5)
+                        .fadeTo(400, 1)
+                        .fadeTo(400, 0.5)
+                        .fadeTo(400, 1)
+                        .fadeTo(400, 0.5)
+                        .fadeTo(400, 1)
                         .fadeTo(5000, 0.5)
                     ;
                     $version.parent('small.hide').hover(
@@ -269,14 +313,17 @@ if (!window.LWP.UI.IndexPage) {
         {
             var self = this;
             this.refreshMemoryHost();
-            this.refreshMemoryContainers();
+            this.refreshCPUHost();
             // Slide by time to not cross with other requests.
             setTimeout(function(){
-                self.refreshCPUHost();
+                self.refreshMemoryContainers();
             }, 200);
             setTimeout(function(){
                 self.refreshCpuContainers();
             }, 400);
+            setTimeout(function(){
+                self.updateContainersStatus();
+            }, 600);
         };
 
         // Call every minute

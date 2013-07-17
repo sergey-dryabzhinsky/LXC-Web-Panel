@@ -218,7 +218,7 @@ def containers_cpu_percent_cgroup(containers):
 
     prev_usage = {}
 
-    result = []
+    result = {}
 
     for name in containers:
         name = name.replace(' (auto)', '')
@@ -240,10 +240,10 @@ def containers_cpu_percent_cgroup(containers):
 
         cont_usage_file = "/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage" % name
         if not os.path.isfile(cont_usage_file):
-            result.append({
+            result[name] = {
                 "name": name,
                 "cpu": "0"
-            })
+            }
             continue
 
         f = open(cont_usage_file, 'r')
@@ -257,10 +257,10 @@ def containers_cpu_percent_cgroup(containers):
 
         percent = 100 * (current_usage_ns - prev_usage_ns) / (current_time - prev_time)
 
-        result.append({
+        result[name] = {
             "name": name,
             "cpu": "%0.1f" % percent
-        })
+        }
 
     return result
 
@@ -641,9 +641,10 @@ def get_fake_filesystem_usage(container):
     return result
 
 
-def get_filesystem_usage(container):
+def get_filesystem_usage(container, check_running=False):
     '''
     Returns container root filesystem current usage
+    Only for running containers
     '''
     result = {
         'total': 0,
@@ -651,47 +652,49 @@ def get_filesystem_usage(container):
         'free': 0,
         'percent': '0'
     }
-    if container not in stopped():
-        cmd = ["lxc-attach --name %s -- df -h /" % container]
-        done = False
+    if check_running and container in stopped():
+        return result
+
+    cmd = ["lxc-attach --name %s -- df -h /" % container]
+    done = False
+    try:
+        usage = subprocess.check_output(cmd, shell=True).split('\n')[1].split()
+        result = {'total': usage[1],
+                'used': usage[2],
+                'free': usage[3],
+                'percent': usage[4].strip('%')}
+        done = True
+    except Exception as e:
+        pass
+
+    if not done:
         try:
-            usage = subprocess.check_output(cmd, shell=True).split('\n')[1].split()
-            result = {'total': usage[1],
-                    'used': usage[2],
-                    'free': usage[3],
-                    'percent': usage[4].strip('%')}
-            done = True
+            import lvm
+            import fs
+
+            filename = '/var/lib/lxc/%s/config' % container
+
+            config = ConfigParser.RawConfigParser()
+            config.readfp(FakeSection(open(filename)))
+
+            try:
+                rootfs = config.get('DEFAULT', cgroup['rootfs'])
+            except ConfigParser.NoOptionError:
+                rootfs = ''
+
+            if rootfs:
+                if lvm.is_lvm(rootfs):
+                    result.update( fs.get_usage(rootfs) )
+                else:
+                    # Simulate lxc-attach is rootfs is directory
+                    cmd = ["df -h %s" % rootfs]
+                    usage = subprocess.check_output(cmd, shell=True).split('\n')[1].split()
+                    result = {'total': usage[1],
+                            'used': usage[2],
+                            'free': usage[3],
+                            'percent': usage[4].strip('%')}
         except Exception as e:
             pass
-
-        if not done:
-            try:
-                import lvm
-                import fs
-
-                filename = '/var/lib/lxc/%s/config' % container
-
-                config = ConfigParser.RawConfigParser()
-                config.readfp(FakeSection(open(filename)))
-
-                try:
-                    rootfs = config.get('DEFAULT', cgroup['rootfs'])
-                except ConfigParser.NoOptionError:
-                    rootfs = ''
-
-                if rootfs:
-                    if lvm.is_lvm(rootfs):
-                        result.update( fs.get_usage(rootfs) )
-                    else:
-                        # Simulate lxc-attach is rootfs is directory
-                        cmd = ["df -h %s" % rootfs]
-                        usage = subprocess.check_output(cmd, shell=True).split('\n')[1].split()
-                        result = {'total': usage[1],
-                                'used': usage[2],
-                                'free': usage[3],
-                                'percent': usage[4].strip('%')}
-            except Exception as e:
-                pass
 
     return result
 
