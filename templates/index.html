@@ -1,6 +1,3 @@
-{% set td = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
-{% set tr = {'RUNNING':'success','FROZEN':'info','STOPPED':'error'} %}
-{% set disabled = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
 {% extends "layout.html" %}
 {% block title %}Overview{% endblock %}
 {% block content %}
@@ -55,55 +52,9 @@
 		</div>
         {% endif %}
 	</div>
-    <table id="containers-area" class="table table-bordered">
-        <thead>
-        </thead>
-        <tbody>
-        {% for status in containers_all %}
-            {% set container_status = status.status|upper %}
-            <tr>
-                <td colspan="7">
-                    <h4><span class="label label-{{ td[container_status] }}">{{ status.status|capitalize }}</span></h4>
-                </td>
-            </tr>
-            <tr>
-                <th>Name</th>
-                <th>Hostname</th>
-                <th>IP Address</th>
-                <th>CPU usage</th>
-                <th>Mem. usage</th>
-                <th>Disk usage</th>
-                <th>Actions</th>
-            </tr>
-            {% for container in status.containers %}
-                <tr class="{{ tr[container_status] }}">
-                    <td><a href="{{ url_for('edit',container=container.name) }}" title="Click to edit {{container.name}}">{{container.name}}</a></td>
-                    <td>{{container.settings.utsname}}</td>
-                    <td>{% if container.settings.flags == 'up' %}{% if container.settings.ipv4 != '' %}{{container.settings.ipv4}}{% else %}Undefined{% endif %}{% elif container.settings.flags == 'down' %}Link Down{% endif %}</td>
-                    <td id="cpu_{{container.name}}">
-                        <span class="label label-success"></span>
-                    </td>
-                    <td id="{{container.name}}">{{ render_memory_wrapper(container.memusg, container.max_memusg) }}</td>
-                    <td id="disk_{{container.name}}">
-                        <span class="label label-success"></span>
-                    </td>
-                    <td>
-                        <div class="btn-toolbar" style="margin:8px 0;">
-                            <div class="btn-group">
-                                {% set start_action = {'STOPPED':'start','FROZEN':'unfreeze'} %}
-                                <a class="btn btn-small {% if container_status == 'RUNNING' %}disabled{% endif %}" {% if container_status == 'STOPPED' or container_status == 'FROZEN' %}href="{{ url_for('action', name=container.name, action=start_action[container_status], token=session.token) }}"{% endif %} title="Start"><i class="icon-play"></i></a>
-                                <a class="btn btn-small {% if container_status == 'FROZEN' or container_status == 'STOPPED' %}disabled{% endif %}" {% if container_status == 'RUNNING' %}href="{{ url_for('action', name=container.name, action='freeze', token=session.token) }}"{% endif %} title="Freeze"><i class="icon-pause"></i></a>
-                                <a class="btn btn-small {% if container_status == 'STOPPED' or container_status == 'FROZEN' %}disabled{% endif %}" {% if container_status == 'RUNNING' %}href="{{ url_for('action', name=container.name, action='shutdown', token=session.token) }}"{% endif %} title="Shutdown, nice and clean"><i class="icon-off"></i></a>
-                                <a class="btn btn-small {% if container_status == 'STOPPED' %}disabled{% endif %}" {% if container_status == 'RUNNING' or container_status == 'FROZEN' %}href="{{ url_for('action', name=container.name, action='stop', token=session.token) }}"{% endif %} title="Stop, kill container"><i class="icon-stop"></i></a>
-                            </div>
-                            {% if session.su == 'Yes' %}<a class="pull-right close destroy" data-container-name="{{container.name}}" style="margin-top:4px;"><i class="icon-remove-sign"></i></a>{% endif %}
-                        </div>
-                    </td>
-                </tr>
-            {% endfor %}
-        {% endfor %}
-        </tbody>
-    </table>
+
+    <div id="containers-placeholder"></div>
+
 </div>
 {% if session.su == 'Yes' %}
 	{% include "includes/modal_reboot.html" %}
@@ -117,11 +68,6 @@
 
 {% endblock %}
 
-{% macro memory_color(value, max) -%}{% if value != 0 %}{% if 0 <= value < max*0.8 %}success{% elif max*0.8 <= value < max*0.9 %}warning{% else %}important{% endif %}{% endif %}{%- endmacro %}
-{% macro render_memory_wrapper(value, max) -%}
-	{% if value != 0 %}<span class="label label-{{ memory_color(value, max) }}">{{ value }} of {{max}} MB</span>{% endif %}
-{%- endmacro %}
-
 {% block script %}
 <script src="/static/js/bootstrapSwitch.js"></script>
 <script src="/static/js/colors.js"></script>
@@ -132,8 +78,7 @@
 LWP.UI.IndexPage.init({
     su: '{{ session.su }}',
     token: '{{ session.token }}',
-    scriptRoot: $SCRIPT_ROOT,
-    containersCount: {{ containers|length }}
+    scriptRoot: $SCRIPT_ROOT
 });
 
 </script>
