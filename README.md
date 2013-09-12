@@ -9,7 +9,7 @@ Visit http://lxc-webpanel.github.io/ for more informations
 ## Manual installation
 
 Clone our repository
-> git clone https://github.io/lxc-webpanel/LXC-Web-Panel.git
+> git clone https://github.com/lxc-webpanel/LXC-Web-Panel.git
 
 or other project fork and
 
