@@ -509,7 +509,16 @@ def action():
                     flash(u'System will now restart!', 'success')
                 except:
                     flash(u'System error!', 'error')
-
+            elif action == 'shutdown' and name == 'host':
+                if session['su'] != 'Yes':
+                    return abort(403)
+                msg = '\v*** LXC Web Panel *** \
+                        \nShutdown from web panel'
+                try:
+                    subprocess.check_call('/sbin/shutdown -h now \'%s\'' % msg, shell=True)
+                    flash(u'System will now Shutdown!', 'success')
+                except:
+                    flash(u'System error!', 'error')
             try:
                 if request.args['from'] == 'edit':
                     return redirect('../%s/edit' % name)
