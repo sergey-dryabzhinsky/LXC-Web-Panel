@@ -3,7 +3,8 @@
 {% block content %}
 <div class="span9">
 	{{ super() }}
-	{% if session.su == 'Yes' %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-danger" data-toggle="modal" data-target="#reboot"><i class="icon-off icon-white"></i> Reboot</a></p>
+	{% if session.su == 'Yes' %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-warning" data-toggle="modal" data-target="#reboot"><i class="icon-repeat icon-white"></i> Reboot</a></p>
+    <p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-danger" data-toggle="modal" data-target="#shutdown"><i class="icon-off icon-white"></i> Shutdown</a></p>
 	{% if containers != [] %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-inverse" data-toggle="modal" data-target="#cloneCT"> <i class="icon-repeat icon-white"></i> Clone <abbr title="Container">CT</abbr></a></p>{% endif %}
 	<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-success" data-toggle="modal" data-target="#createCT"><i class="icon-plus-sign icon-white"></i> Create <abbr title="Container">CT</abbr></a></p>{% endif %}
 
@@ -58,6 +59,7 @@
 </div>
 {% if session.su == 'Yes' %}
 	{% include "includes/modal_reboot.html" %}
+	{% include "includes/modal_shutdown.html" %}
 	{% include "includes/modal_create.html" %}
 
 	{% if containers != [] %}
