@@ -31,7 +31,7 @@ PORT = int(config.get('global', 'port'))
 app = Flask(__name__)
 app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 app.config.from_object(__name__)
-
+app.debug = DEBUG
 
 def connect_db():
     '''
@@ -887,7 +887,7 @@ def check_session_limit():
 
 
 def launch(app):
-    app.run(host=app.config['ADDRESS'], port=app.config['PORT'])
+    app.run(host=app.config['ADDRESS'], port=app.config['PORT'], debug=DEBUG, use_debugger=DEBUG)
 
 
 if __name__ == '__main__':
