@@ -781,7 +781,7 @@ def refresh_lvm_host():
         lvm = 0
         if config.has_option('overview', 'lvmvg'):
             lvm = lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg'))
-        return jsonify(lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')))
+        return jsonify(lvm)
 
 
 @app.route('/_refresh_memory_<name>')
