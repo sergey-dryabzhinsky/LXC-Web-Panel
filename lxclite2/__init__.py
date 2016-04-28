@@ -2,14 +2,19 @@ import subprocess
 import os
 
 # LXC Python Library
-# for compatibility with LXC 0.8 and 0.9
-# on Ubuntu 12.04/12.10/13.04
+# for compatibility with LXC 1.0+
+# on Ubuntu 15.10/16.04/+ Debian 8+ / Proxmox 4
 
+# Author: Sergey Dryabzhinsky
+# Contact: sergey.dryabzhinsky@gmail.com
+
+# Orignika work LXC Lite for 0.9
 # Author: Elie Deloumeau
 # Contact: elie@deloumeau.fr
 
 # The MIT License (MIT)
 # Copyright (c) 2013 Elie Deloumeau
+# Copyright (c) 2016 Sergey Dryabzhinsky
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 # to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -89,21 +94,30 @@ def clone(orig=None, new=None, snapshot=False, storage=None):
 
 def info(container):
     '''
-    Check info from lxc-info*
-        *I hope that the LXC developers will not change this output
+    Output changed
+    Name: <name>
+    STATE: <state>
     '''
     if not exists(container): raise ContainerDoesntExists('Container {} does not exist!'.format(container))
 
-    output = _run('lxc-info -qn {}'.format(container), output=True)
+    result = {'state':'Unknown','pid':-1,'ip':'0.0.0.0'}
 
+    output = _run('lxc-info -s -n {}'.format(container), output=True)
     if output:
         output = output.splitlines()
+        result['state'] = output[1].split()[1]
 
-        return {'state': output[0].split()[1],
-                'pid': output[1].split()[1]}
+    output = _run('lxc-info -p -n {}'.format(container), output=True)
+    if output:
+        output = output.splitlines()
+        result['pid'] = output[1].split()[1]
 
-    return {'state': "Unknown",
-            'pid': -1}
+    output = _run('lxc-info -i -n {}'.format(container), output=True)
+    if output:
+        output = output.splitlines()
+        result['ip'] = output[1].split()[1]
+
+    return result
 
 
 def ls():
@@ -126,20 +140,18 @@ def listx():
     frozen = []
     running = []
 
-    output = _run('lxc-ls --fancy --fancy-format name,state', output=True)
+    vms = ls()
 
-    if output:
-        output = output.splitlines()[2:]
+    for vm in vms:
 
-        for line in output:
-            container, state = line.split()
+        info = info(line.split())
 
-            if state == 'RUNNING':
-                running.append(container)
-            elif state == 'FROZEN':
-                frozen.append(container)
-            elif state == 'STOPPED':
-                stopped.append(container)
+        if info['state'] == 'RUNNING':
+            running.append(container)
+        elif info['state'] == 'FROZEN':
+            frozen.append(container)
+        elif info['state'] == 'STOPPED':
+            stopped.append(container)
 
     return {'RUNNING': running,
             'FROZEN': frozen,
@@ -175,7 +187,7 @@ def stop(container):
     if container in stopped(): raise ContainerNotRunning('Container {} is not running!'.format(container))
     return _run('lxc-stop -n {}'.format(container))
 
-    
+
 def shutdown(container):
     '''
     Stops a container nicely
@@ -184,7 +196,7 @@ def shutdown(container):
     if container in stopped(): raise ContainerNotRunning('Container {} is not running!'.format(container))
     return _run('lxc-shutdown -n {}'.format(container))
 
-    
+
 def freeze(container):
     '''
     Freezes a container
