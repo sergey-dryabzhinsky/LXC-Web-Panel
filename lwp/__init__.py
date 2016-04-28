@@ -429,7 +429,8 @@ def get_templates_precreated_list(path=None):
                     '/usr/lib/lxc/templates',
                     path
                     ]:
-
+        if not templates_path:
+            continue
         if os.path.exists(templates_path) and os.path.isdir(templates_path):
             paths = os.listdir(templates_path)
             for line in paths:
