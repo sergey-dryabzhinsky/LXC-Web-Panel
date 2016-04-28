@@ -1,6 +1,5 @@
 import sys
 sys.path.append('../')
-from lxclite import exists, stopped, ContainerDoesntExists
 import subprocess
 import os
 import platform
@@ -9,6 +8,11 @@ import urllib2
 import ConfigParser
 import re
 
+from lxclite import version
+if version()[0] >= 1:
+    from lxclite2 import exists, stopped, ContainerDoesntExists
+else:
+    from lxclite import exists, stopped, ContainerDoesntExists
 
 class CalledProcessError(Exception):
     pass
