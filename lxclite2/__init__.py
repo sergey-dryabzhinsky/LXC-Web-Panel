@@ -144,13 +144,13 @@ def listx():
 
     for vm in vms:
 
-        info = info(line.split())
+        i = info(line.split())
 
-        if info['state'] == 'RUNNING':
+        if i['state'] == 'RUNNING':
             running.append(container)
-        elif info['state'] == 'FROZEN':
+        elif i['state'] == 'FROZEN':
             frozen.append(container)
-        elif info['state'] == 'STOPPED':
+        elif i['state'] == 'STOPPED':
             stopped.append(container)
 
     return {'RUNNING': running,
