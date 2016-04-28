@@ -144,7 +144,7 @@ def listx():
 
     for vm in vms:
 
-        i = info(line.split())
+        i = info(vm)
 
         if i['state'] == 'RUNNING':
             running.append(container)
