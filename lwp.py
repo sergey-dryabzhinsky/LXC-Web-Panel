@@ -74,7 +74,8 @@ def home():
                                dist=lwp.check_system_version(),
                                system_version=lwp.check_system_version(True),
                                lvm=lvm,
-                               templates=lwp.get_templates_list())
+                               templates=lwp.get_templates_list(),
+                               templatesPrecreated=lwp.get_templates_precreated_list())
     return render_template('login.html')
 
 

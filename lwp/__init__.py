@@ -408,13 +408,32 @@ def get_templates_list():
     for templates_path in [
                     '/usr/share/lxc/templates',
                     '/usr/lib/lxc/templates',
-                    '/var/lib/vz/templates/cache',
                     ]:
 
         if os.path.exists(templates_path) and os.path.isdir(templates_path):
             paths = os.listdir(templates_path)
             for line in paths:
-                tp = os.path.join(templates_path, line.replace('lxc-', ''))
+                p = line.replace('lxc-', '')
+                templates.append(p)
+
+    return sorted(templates)
+
+
+def get_templates_precreated_list(path=None):
+    '''
+    returns a sorted precreated templates list
+    '''
+    templates = []
+
+    for templates_path in [
+                    '/usr/lib/lxc/templates',
+                    path
+                    ]:
+
+        if os.path.exists(templates_path) and os.path.isdir(templates_path):
+            paths = os.listdir(templates_path)
+            for line in paths:
+                tp = os.path.join(templates_path, line)
                 templates.append(tp)
 
     return sorted(templates)

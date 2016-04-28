@@ -35,6 +35,15 @@
                         </select>
 					</div>
 				</div>
+
+				<div class="controls input-prepend pull-right" style="margin-top: -40px;">
+					<span class="add-on"><i class="icon-download-alt"></i></span>
+					<select id="selectPrecreatedTemplate" name="templatePrecreated">
+						{% for template in templatesPrecreated %}<option value="{{ template }}">{{ template }}</option>{% endfor %}
+					</select>
+				</div>
+
+				<br />
 			</div>
 			<button id ="advancedcreate" class="btn btn-small">Advanced options</button>
 			<div id="advancedcreatediv" class="advanced-wrapper hide">
@@ -54,6 +63,9 @@
 								<option value="default" selected>Default</option>
 								<option value="directory">Directory</option>
 								<option value="lvm">LVM</option>
+								<option value="loop">Loop Image</option>
+								<option value="lvm">ZFS</option>
+								<option value="lvm">BtrFS</option>
 						</select>
 					</div>
 					<span class="help-inline"><small>*By default it is 'none', which is a simple directory tree under /var/lib/lxc/&lt;name&gt;/rootfs</small></span>
@@ -75,6 +87,34 @@
 						<input type="text" id="inputFS" name="fstype" placeholder="ext4">
 						<label class="control-label" for="inputFSSize">Size</label>
 						<input type="text" id="inputFSSize" name="fssize" placeholder="500M">
+					</div>
+				</div>
+				<div class="control-group hide loop">
+					<div class="controls">
+						<label class="control-label" for="inputLoopImg">Loop Image</label>
+						<input type="text" id="inputLoopImg" name="loopimg" placeholder="Loop Image Name">
+						<label class="control-label" for="inputFS">File system</label>
+						<input type="text" id="inputFS" name="fstype" placeholder="ext4">
+						<label class="control-label" for="inputFSSize">Size</label>
+						<input type="text" id="inputFSSize" name="fssize" placeholder="1G">
+					</div>
+				</div>
+				<div class="control-group hide zfs">
+					<div class="controls">
+						<label class="control-label" for="inputZPool">ZFS Pool</label>
+						<input type="text" id="inputZPool" name="zpool" placeholder="ZFS Pool Name">
+						<label class="control-label" for="inputZDS">Dataset Name</label>
+						<input type="text" id="inputZDS" name="zdsname" placeholder="ZFS Dataset Name">
+						<label class="control-label" for="inputFSSize">Size</label>
+						<input type="text" id="inputFSSize" name="fssize" placeholder="1G">
+					</div>
+				</div>
+				<div class="control-group hide brefs">
+					<div class="controls">
+						<label class="control-label" for="inputBtrSubv">BtrFS Subvolume</label>
+						<input type="text" id="inputBtrSubv" name="btrsubv" placeholder="BtrFS Subvolume Name">
+						<label class="control-label" for="inputBtrQuota">Size</label>
+						<input type="text" id="inputBtrQuota" name="fssize" placeholder="1G">
 					</div>
 				</div>
 			</div>
