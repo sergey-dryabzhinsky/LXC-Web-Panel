@@ -386,10 +386,10 @@ def check_ubuntu():
     sysname = '%s %s' % (platform.linux_distribution()[0], platform.linux_distribution()[1])
     dist = str(platform.linux_distribution()[0])
     vers = str(platform.linux_distribution()[1])
-    if dist == 'Ubuntu'
+    if dist == 'Ubuntu':
         if vers >= '12.04':
         return dist
-    elif dist == 'Debian'
+    elif dist == 'Debian':
         if vers >= '8.0':
         return dist
     return 'Unknown'
