@@ -777,6 +777,9 @@ def refresh_disk_host():
 @app.route('/_refresh_lvm_host')
 def refresh_lvm_host():
     if 'logged_in' in session:
+        lvm = 0
+        if config.has_option('overview', 'lvmvg'):
+            lvm = lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg'))
         return jsonify(lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')))
 
 
