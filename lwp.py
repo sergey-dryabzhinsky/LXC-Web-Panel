@@ -65,8 +65,9 @@ def home():
     home page function
     '''
     if 'logged_in' in session:
+        lvm = 0
         if config.has_option('overview', 'lvmvg'):
-            lvm=lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg'))
+            lvm = lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg'))
         return render_template('index.html',
                                containers=lxc.ls(),
                                dist=lwp.check_ubuntu(),
