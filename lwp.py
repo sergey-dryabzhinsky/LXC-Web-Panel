@@ -65,10 +65,12 @@ def home():
     home page function
     '''
     if 'logged_in' in session:
+        if config.has_option('overview', 'lvmvg'):
+            lvm=lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg'))
         return render_template('index.html',
                                containers=lxc.ls(),
                                dist=lwp.check_ubuntu(),
-                               lvm=lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg')),
+                               lvm=lvm,
                                templates=lwp.get_templates_list())
     return render_template('login.html')
 
