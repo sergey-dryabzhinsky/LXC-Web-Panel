@@ -383,7 +383,7 @@ def host_uptime():
             'time': '%d:%02d' % (hours, minutes)}
 
 
-def check_ubuntu():
+def check_system_version(getsysname=False):
     '''
     return the System version
     '''
@@ -392,11 +392,11 @@ def check_ubuntu():
     vers = str(platform.linux_distribution()[1])
     if dist == 'Ubuntu':
         if vers >= '12.04':
-            return dist
+            return getsysname and sysname or dist
     elif dist == 'Debian':
-        if vers >= '8.0':
-            return dist
-    return 'Unknown'
+        if vers >= '7.0':
+            return getsysname and sysname or dist
+    return getsysname and sysname or 'Unknown'
 
 
 def get_templates_list():

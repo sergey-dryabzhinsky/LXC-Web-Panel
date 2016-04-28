@@ -70,7 +70,8 @@ def home():
             lvm = lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg'))
         return render_template('index.html',
                                containers=lxc.ls(),
-                               dist=lwp.check_ubuntu(),
+                               dist=lwp.check_system_version(),
+                               system_version=lwp.check_system_version(True),
                                lvm=lvm,
                                templates=lwp.get_templates_list())
     return render_template('login.html')
