@@ -14,7 +14,7 @@ config = ConfigParser.SafeConfigParser(allow_no_value=True)
 config.readfp(open('lwp.conf'))
 
 import lxclite as lxc
-if lxc.version()[0] => 1:
+if lxc.version()[0] >= 1:
     import lxclite2 as lxc
 
 import lwp
