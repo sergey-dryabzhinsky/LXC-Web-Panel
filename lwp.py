@@ -894,7 +894,7 @@ def check_session_limit():
 
 
 def launch(app):
-    app.run(host=app.config['ADDRESS'], port=app.config['PORT'], debug=DEBUG, use_debugger=DEBUG)
+    app.run(host=app.config['ADDRESS'], port=app.config['PORT'], debug=DEBUG)
 
 
 if __name__ == '__main__':
