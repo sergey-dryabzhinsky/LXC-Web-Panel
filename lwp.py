@@ -69,13 +69,16 @@ def home():
             lvm = lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg'))
         else:
             lvm = lwp.host_lvm_usage()
+        tmpppath = None
+        if config.has_option('templates', 'precreated'):
+            lmpppath = config.get('templates', 'precreated')
         return render_template('index.html',
                                containers=lxc.ls(),
                                dist=lwp.check_system_version(),
                                system_version=lwp.check_system_version(True),
                                lvm=lvm,
                                templates=lwp.get_templates_list(),
-                               templatesPrecreated=lwp.get_templates_precreated_list())
+                               templatesPrecreated=lwp.get_templates_precreated_list(tmpppath))
     return render_template('login.html')
 
 
