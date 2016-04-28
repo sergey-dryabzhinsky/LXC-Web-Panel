@@ -41,7 +41,7 @@ class ContainerNotRunning(Exception): pass
 
 def version():
     command = 'lxc-info --version'
-    raw = _run(command)
+    raw = _run(command, True)
     v = [ int(d) for d in raw.split('.') ]
     return v
 
