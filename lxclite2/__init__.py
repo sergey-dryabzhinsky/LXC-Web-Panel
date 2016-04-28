@@ -147,11 +147,11 @@ def listx():
         i = info(vm)
 
         if i['state'] == 'RUNNING':
-            running.append(container)
+            running.append(vm)
         elif i['state'] == 'FROZEN':
-            frozen.append(container)
+            frozen.append(vm)
         elif i['state'] == 'STOPPED':
-            stopped.append(container)
+            stopped.append(vm)
 
     return {'RUNNING': running,
             'FROZEN': frozen,
