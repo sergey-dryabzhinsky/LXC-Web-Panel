@@ -105,17 +105,17 @@ def info(container):
     output = _run('lxc-info -s -n {}'.format(container), output=True)
     if output:
         output = output.splitlines()
-        result['state'] = output[1].split()[1]
+        result['state'] = output[0].split()[1]
 
     output = _run('lxc-info -p -n {}'.format(container), output=True)
     if output:
         output = output.splitlines()
-        result['pid'] = output[1].split()[1]
+        result['pid'] = output[0].split()[1]
 
     output = _run('lxc-info -i -n {}'.format(container), output=True)
     if output:
         output = output.splitlines()
-        result['ip'] = output[1].split()[1]
+        result['ip'] = output[0].split()[1]
 
     return result
 
