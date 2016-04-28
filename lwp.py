@@ -65,9 +65,10 @@ def home():
     home page function
     '''
     if 'logged_in' in session:
-        lvm = 0
         if config.has_option('overview', 'lvmvg'):
             lvm = lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg'))
+        else:
+            lvm = lwp.host_lvm_usage()
         return render_template('index.html',
                                containers=lxc.ls(),
                                dist=lwp.check_system_version(),
@@ -778,9 +779,10 @@ def refresh_disk_host():
 @app.route('/_refresh_lvm_host')
 def refresh_lvm_host():
     if 'logged_in' in session:
-        lvm = 0
         if config.has_option('overview', 'lvmvg'):
             lvm = lwp.host_lvm_usage(vgname=config.get('overview', 'lvmvg'))
+        else:
+            lvm = lwp.host_lvm_usage()
         return jsonify(lvm)
 
 

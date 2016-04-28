@@ -393,7 +393,7 @@ def check_system_version(getsysname=False):
     if dist == 'Ubuntu':
         if vers >= '12.04':
             return getsysname and sysname or dist
-    elif dist == 'Debian':
+    elif dist == 'debian':
         if vers >= '7.0':
             return getsysname and sysname or dist
     return getsysname and sysname or 'Unknown'
