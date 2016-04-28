@@ -71,7 +71,7 @@ def home():
             lvm = lwp.host_lvm_usage()
         tmpppath = None
         if config.has_option('templates', 'precreated'):
-            lmpppath = config.get('templates', 'precreated')
+            tmpppath = config.get('templates', 'precreated')
         return render_template('index.html',
                                containers=lxc.ls(),
                                dist=lwp.check_system_version(),

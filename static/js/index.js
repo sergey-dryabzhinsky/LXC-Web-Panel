@@ -101,7 +101,7 @@ if (!window.LWP.UI.IndexPage) {
                         var _val = $(this).val();
                         var _lvm = $(this).closest('.advanced-wrapper').find('.lvm');
                         var _loop = $(this).closest('.advanced-wrapper').find('.loop');
-                        var _zfs = $(this).closest('.advanced-wrapper').find('..zfs');
+                        var _zfs = $(this).closest('.advanced-wrapper').find('.zfs');
                         var _btrfs = $(this).closest('.advanced-wrapper').find('.btrfs');
                         var _directory = $(this).closest('.advanced-wrapper').find('.directory');
 
