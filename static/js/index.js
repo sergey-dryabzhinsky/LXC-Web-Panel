@@ -100,19 +100,52 @@ if (!window.LWP.UI.IndexPage) {
                     $(".backingstore").on('change',function(){
                         var _val = $(this).val();
                         var _lvm = $(this).closest('.advanced-wrapper').find('.lvm');
+                        var _loop = $(this).closest('.advanced-wrapper').find('.loop');
+                        var _zfs = $(this).closest('.advanced-wrapper').find('..zfs');
+                        var _btrfs = $(this).closest('.advanced-wrapper').find('.btrfs');
                         var _directory = $(this).closest('.advanced-wrapper').find('.directory');
 
                         if( _val == 'lvm'){
                             _lvm.slideDown();
                             _directory.slideUp();
+                            _loop.slideUp();
+                            _zfs.slideUp();
+                            _btrfs.slideUp();
                         }
                         else if ( _val == 'directory' ){
                             _directory.slideDown();
                             _lvm.slideUp();
+                            _loop.slideUp();
+                            _zfs.slideUp();
+                            _btrfs.slideUp();
+                        }
+                        else if ( _val == 'loop' ){
+                            _directory.slideUp();
+                            _lvm.slideUp();
+                            _loop.slideDown();
+                            _zfs.slideUp();
+                            _btrfs.slideUp();
+                        }
+                        else if ( _val == 'zfs' ){
+                            _directory.slideUp();
+                            _lvm.slideUp();
+                            _loop.slideUp();
+                            _zfs.slideDown();
+                            _btrfs.slideUp();
+                        }
+                        else if ( _val == 'btrfs' ){
+                            _directory.slideUp();
+                            _lvm.slideUp();
+                            _loop.slideUp();
+                            _zfs.slideUp();
+                            _btrfs.slideDown();
                         }
                         else{
                             _directory.slideUp();
                             _lvm.slideUp();
+                            _loop.slideUp();
+                            _zfs.slideUp();
+                            _btrfs.slideUp();
                         }
                     });
 

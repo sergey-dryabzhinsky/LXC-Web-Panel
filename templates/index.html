@@ -7,7 +7,7 @@
     <p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-danger" data-toggle="modal" data-target="#shutdown"><i class="icon-off icon-white"></i> Shutdown</a></p>
 	{% if containers != [] %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-inverse" data-toggle="modal" data-target="#cloneCT"> <i class="icon-repeat icon-white"></i> Clone <abbr title="Container">CT</abbr></a></p>{% endif %}
 	<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-success" data-toggle="modal" data-target="#createCT"><i class="icon-plus-sign icon-white"></i> Create <abbr title="Container">CT</abbr></a></p>{% endif %}
-	<h3>{{ system_version }} (host)</h3>
+	<h3 class="sup">{{ system_version }} (host)</h3>
     <div class="clearfix"></div>
 
 	<div id="host-area" class="hero-unit">
