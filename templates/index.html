@@ -13,7 +13,7 @@
 	<div id="host-area" class="hero-unit">
 		{% if dist == 'Unknown' %}<div class="alert alert-error">LXC Web Panel is optimized for Ubuntu 14.04 !</div>{% endif %}
 		<div class="row">
-			<div class="span3" style="margin-left:20px;">
+			<div class="span5" style="margin-left:20px;">
 				<p>CPU usage : <span id="cpu-usage" class="hide"></span></p>
 				<div class="progress" style="width:250px;">
 					<div class="bar" id="cpu-usage-bar" style="width:0%;"></div>
@@ -24,7 +24,7 @@
 					<abbr title="Cached memory"><span class="bar bar-success" id="memory-cache-usage-bar" style="width: 0%;"></span></abbr>
 				</div>
 			</div>
-			<div class="span3" style="margin-top: -30px; margin-left:20px;">
+			<div class="span5" style="margin-top: -30px; margin-left:20px;">
                 <h3>&nbsp;</h3><!-- Vertical align -->
 				<p>Disk usage : <span id="disk-usage" class="hide"></span></p>
 				<div class="progress" style="width:250px;">
@@ -35,11 +35,11 @@
 		</div>
         {% if lvm and lvm.vgs %}
 		<div class="row">
-			<div class="span3" style="margin-left:20px;">
+			<div class="span5" style="margin-left:20px;">
                 <h3>LVM</h3>
 			</div>
 
-			<div class="span3" style="margin-left:20px;">
+			<div class="span5" style="margin-left:20px;">
                 {% for vg in lvm.vgs %}
 
                 <h4>{{ vg.name }}</h4>
