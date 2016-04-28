@@ -388,10 +388,10 @@ def check_ubuntu():
     vers = str(platform.linux_distribution()[1])
     if dist == 'Ubuntu':
         if vers >= '12.04':
-        return dist
+            return dist
     elif dist == 'Debian':
         if vers >= '8.0':
-        return dist
+            return dist
     return 'Unknown'
 
 
