@@ -383,14 +383,16 @@ def check_ubuntu():
     '''
     return the System version
     '''
-    dist = '%s %s' % (platform.linux_distribution()[0], platform.linux_distribution()[1])
-    if dist == 'Ubuntu 12.04':
+    sysname = '%s %s' % (platform.linux_distribution()[0], platform.linux_distribution()[1])
+    dist = str(platform.linux_distribution()[0])
+    vers = str(platform.linux_distribution()[1])
+    if dist == 'Ubuntu'
+        if vers >= '12.04':
         return dist
-    elif dist == 'Ubuntu 12.10':
+    elif dist == 'Debian'
+        if vers >= '8.0':
         return dist
-    elif dist == 'Ubuntu 13.04':
-        return dist
-    return 'unknown'
+    return 'Unknown'
 
 
 def get_templates_list():
@@ -398,19 +400,18 @@ def get_templates_list():
     returns a sorted lxc templates list
     '''
     templates = []
-    path = None
 
-    templates_path = '/usr/share/lxc/templates'
-    if os.path.exists(templates_path) and os.path.isdir(templates_path):
-        path = os.listdir(templates_path)
-    else:
-        templates_path = '/usr/lib/lxc/templates'
+    for templates_path in [
+                    '/usr/share/lxc/templates',
+                    '/usr/lib/lxc/templates',
+                    '/var/lib/vz/templates/cache',
+                    ]:
+
         if os.path.exists(templates_path) and os.path.isdir(templates_path):
-            path = os.listdir(templates_path)
-
-    if path:
-        for line in path:
-                templates.append(line.replace('lxc-', ''))
+            paths = os.listdir(templates_path)
+            for line in paths:
+                tp = os.path.join(templates_path, line.replace('lxc-', ''))
+                templates.append(tp)
 
     return sorted(templates)
 

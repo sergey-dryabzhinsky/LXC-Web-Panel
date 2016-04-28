@@ -1,6 +1,5 @@
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, jsonify
-import lxclite as lxc
-import lwp
+
 import subprocess
 import time
 import re
@@ -13,6 +12,12 @@ import ConfigParser
 # configuration
 config = ConfigParser.SafeConfigParser(allow_no_value=True)
 config.readfp(open('lwp.conf'))
+
+import lxclite as lxc
+if lxc.version()[0] => 1:
+    import lxclite2 as lxc
+
+import lwp
 
 SECRET_KEY = '\xb13\xb6\xfb+Z\xe8\xd1n\x80\x9c\xe7KM\x1c\xc1\xa7\xf8\xbeY\x9a\xfa<.'
 
